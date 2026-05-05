@@ -51,9 +51,6 @@ export default function LandingPage() {
               <Link href={`/play/${state.currentLevel}`} className="btn btn-primary btn-lg w-full">
                 ▶ Continue Game
               </Link>
-              <Link href="/levels" className="btn btn-secondary w-full">
-                🗺️ Level Select
-              </Link>
             </>
           ) : (
             <Link href="/play/1" className="btn btn-primary btn-lg w-full">

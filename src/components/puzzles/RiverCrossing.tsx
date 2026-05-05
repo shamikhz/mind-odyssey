@@ -22,6 +22,15 @@ export default function RiverCrossing({ onComplete }: Props) {
   const [message, setMessage] = useState('');
   const [gameOver, setGameOver] = useState(false);
 
+  const resetGame = useCallback(() => {
+    setLeft(['farmer', 'fox', 'chicken', 'grain']);
+    setRight([]);
+    setBoat([]);
+    setBoatSide('left');
+    setMessage('');
+    setGameOver(false);
+  }, []);
+
   const getBank = (side: Side) => side === 'left' ? left : right;
 
   const handleEntityClick = (entity: Entity) => {
@@ -48,11 +57,6 @@ export default function RiverCrossing({ onComplete }: Props) {
     if (isDangerous(fromBank)) {
       setMessage('💀 Something got eaten! Try again.');
       setGameOver(true);
-      setTimeout(() => {
-        setLeft(['farmer', 'fox', 'chicken', 'grain']);
-        setRight([]); setBoat([]); setBoatSide('left');
-        setMessage(''); setGameOver(false);
-      }, 1500);
       return;
     }
 
@@ -67,7 +71,16 @@ export default function RiverCrossing({ onComplete }: Props) {
 
   return (
     <div style={{ width: '100%', maxWidth: '500px' }}>
-      {message && <div style={{ textAlign: 'center', color: 'var(--danger)', marginBottom: '12px', fontWeight: 600 }}>{message}</div>}
+      {message && (
+        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+          <div style={{ color: 'var(--danger)', fontWeight: 600, marginBottom: '8px' }}>{message}</div>
+          {gameOver && (
+            <button className="btn btn-primary btn-sm" onClick={resetGame}>
+              Try Again
+            </button>
+          )}
+        </div>
+      )}
       <div className="crossing-scene">
         <div className="crossing-bank">
           <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '4px' }}>LEFT BANK</div>
