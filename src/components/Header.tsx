@@ -142,12 +142,30 @@ export default function Header() {
         name: 'Mind Odyssey',
         description: `Purchase ${count} Hints`,
         order_id: order.id,
-        handler: function (response: any) {
-          // Success!
-          dispatch({ type: 'BUY_HINTS', count });
-          (globalThis as any).alert(`Success! ${count} hints added to your account.`);
-          setShowDropdown(false);
-          setShowShop(false);
+        handler: async function (response: any) {
+          try {
+            // Record payment in Supabase
+            if (state.user.id) {
+              await supabase.from('payments').insert({
+                user_id: state.user.id,
+                order_id: order.id,
+                payment_id: response.razorpay_payment_id,
+                amount: amount,
+                hint_count: count,
+                status: 'captured'
+              });
+            }
+            
+            // Success!
+            dispatch({ type: 'BUY_HINTS', count });
+            (globalThis as any).alert(`Success! ${count} hints added to your account.`);
+            setShowDropdown(false);
+            setShowShop(false);
+          } catch (dbError) {
+            console.error('Error saving payment record:', dbError);
+            // Still give hints even if DB logging fails, to ensure good UX
+            dispatch({ type: 'BUY_HINTS', count });
+          }
         },
         prefill: {
           name: state.user.name,
