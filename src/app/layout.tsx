@@ -31,10 +31,11 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <GameProvider>{children}</GameProvider>
+        <script src="https://checkout.razorpay.com/v1/checkout.js" async />
         <script dangerouslySetInnerHTML={{ __html: `
-          if ('serviceWorker' in navigator) {
+          if ('serviceWorker' in (globalThis as any).navigator) {
             window.addEventListener('load', function() {
-              navigator.serviceWorker.register('/sw.js');
+              (globalThis as any).navigator.serviceWorker.register('/sw.js');
             });
           }
         `}} />

@@ -149,6 +149,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           email: session.user.email || '',
           avatar: profile?.avatar || ''
         }});
+      } else {
+        dispatch({ type: 'LOGOUT' });
       }
     };
 

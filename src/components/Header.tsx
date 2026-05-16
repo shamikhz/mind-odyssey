@@ -103,9 +103,67 @@ export default function Header() {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    dispatch({ type: 'LOGOUT' });
-    setShowDropdown(false);
+    try {
+      await supabase.auth.signOut();
+      dispatch({ type: 'LOGOUT' });
+      setShowDropdown(false);
+      // Force a full page reload to clear all memory state
+      if (typeof window !== 'undefined') {
+        window.location.href = '/';
+      }
+    } catch (err) {
+      console.error('Logout error:', err);
+      // Fallback if signOut fails
+      dispatch({ type: 'LOGOUT' });
+      if (typeof window !== 'undefined') {
+        window.location.href = '/';
+      }
+    }
+  };
+
+  const handlePayment = async (amount: number, count: number) => {
+    try {
+      setLoading(true);
+      // 1. Create order on backend
+      const res = await fetch('/api/razorpay', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount, count }),
+      });
+      const order = await res.json();
+
+      if (order.error) throw new Error(order.error);
+
+      // 2. Open Razorpay Checkout
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: order.currency,
+        name: 'Mind Odyssey',
+        description: `Purchase ${count} Hints`,
+        order_id: order.id,
+        handler: function (response: any) {
+          // Success!
+          dispatch({ type: 'BUY_HINTS', count });
+          (globalThis as any).alert(`Success! ${count} hints added to your account.`);
+          setShowDropdown(false);
+          setShowShop(false);
+        },
+        prefill: {
+          name: state.user.name,
+          email: state.user.email,
+        },
+        theme: { color: '#7c3aed' },
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } catch (err: any) {
+      console.error('Payment Error:', err);
+      (globalThis as any).alert('Payment initialization failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -161,17 +219,17 @@ export default function Header() {
                       ← Back to Menu
                     </button>
                     <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', padding: '0 8px 8px' }}>Select a Hint Pack:</p>
-                    <button className="btn btn-secondary btn-sm w-full mb-xs" style={{ justifyContent: 'space-between', padding: '12px' }} onClick={() => { dispatch({ type: 'BUY_HINTS', count: 5 }); setShowDropdown(false); setShowShop(false); }}>
+                    <button className="btn btn-secondary btn-sm w-full mb-xs" style={{ justifyContent: 'space-between', padding: '12px' }} onClick={() => handlePayment(10, 5)} disabled={loading}>
                       <span style={{ fontSize: '0.95rem', fontWeight: 600 }}>💡 5 Hints</span>
-                      <span style={{ fontSize: '0.85rem', opacity: 0.9 }}>₹10</span>
+                      <span style={{ fontSize: '0.85rem', opacity: 0.9 }}>{loading ? '...' : '₹10'}</span>
                     </button>
-                    <button className="btn btn-secondary btn-sm w-full mb-xs" style={{ justifyContent: 'space-between', padding: '12px' }} onClick={() => { dispatch({ type: 'BUY_HINTS', count: 20 }); setShowDropdown(false); setShowShop(false); }}>
+                    <button className="btn btn-secondary btn-sm w-full mb-xs" style={{ justifyContent: 'space-between', padding: '12px' }} onClick={() => handlePayment(35, 20)} disabled={loading}>
                       <span style={{ fontSize: '0.95rem', fontWeight: 600 }}>💡 20 Hints</span>
-                      <span style={{ fontSize: '0.85rem', opacity: 0.9 }}>₹35</span>
+                      <span style={{ fontSize: '0.85rem', opacity: 0.9 }}>{loading ? '...' : '₹35'}</span>
                     </button>
-                    <button className="btn btn-primary btn-sm w-full" style={{ justifyContent: 'space-between', padding: '12px' }} onClick={() => { dispatch({ type: 'BUY_HINTS', count: 100 }); setShowDropdown(false); setShowShop(false); }}>
+                    <button className="btn btn-primary btn-sm w-full" style={{ justifyContent: 'space-between', padding: '12px' }} onClick={() => handlePayment(150, 100)} disabled={loading}>
                       <span style={{ fontSize: '0.95rem', fontWeight: 600 }}>💡 100 Hints</span>
-                      <span style={{ fontSize: '0.85rem', opacity: 0.9 }}>₹150</span>
+                      <span style={{ fontSize: '0.85rem', opacity: 0.9 }}>{loading ? '...' : '₹150'}</span>
                     </button>
                   </div>
                 ) : (
@@ -186,7 +244,7 @@ export default function Header() {
                       <span style={{ fontSize: '18px' }}>💡</span> Buy Hints
                     </button>
                     <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '8px 0' }} />
-                    <button className="btn btn-ghost btn-sm w-full" style={{ justifyContent: 'flex-start', gap: '10px', color: 'var(--danger)' }} onClick={handleLogout}>
+                    <button className="btn btn-ghost btn-sm w-full" style={{ justifyContent: 'flex-start', gap: '10px', color: 'var(--danger)', cursor: 'pointer', pointerEvents: 'auto' }} onClick={handleLogout}>
                       <LogOut size={18} /> Log Out
                     </button>
                   </>
