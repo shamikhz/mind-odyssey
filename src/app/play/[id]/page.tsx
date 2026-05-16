@@ -228,16 +228,24 @@ export default function PlayPage() {
 
       {/* Bottom Bar */}
       {!completed && (
-        <div className="bottom-bar">
-          <button className="btn btn-secondary btn-sm" onClick={() => setShowHintModal(true)} disabled={state.hintsRemaining <= 0}>
-            💡 Hint ({state.hintsRemaining})
-          </button>
-          <button className="btn btn-secondary btn-sm" onClick={handleWatchAd}>
-            📺 Ad (+1💡)
-          </button>
-          <button className="btn btn-ghost btn-sm" onClick={handleReset}>
-            🔄 Reset
-          </button>
+        <div className="flex-col">
+          {/* Adsterra Footer Banner Placeholder */}
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0', background: 'rgba(0,0,0,0.02)', borderTop: '1px solid var(--border)' }}>
+            <div style={{ width: '320px', height: '50px', background: 'rgba(0,0,0,0.05)', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+              ADSTERRA BANNER (320x50)
+            </div>
+          </div>
+          <div className="bottom-bar">
+            <button className="btn btn-secondary btn-sm" onClick={() => setShowHintModal(true)} disabled={state.hintsRemaining <= 0}>
+              💡 Hint ({state.hintsRemaining})
+            </button>
+            <button className="btn btn-secondary btn-sm" onClick={handleWatchAd}>
+              📺 Ad (+1💡)
+            </button>
+            <button className="btn btn-ghost btn-sm" onClick={handleReset}>
+              🔄 Reset
+            </button>
+          </div>
         </div>
       )}
 
@@ -266,18 +274,42 @@ export default function PlayPage() {
       {/* ─── Ad Modal ─── */}
       {showAdModal && (
         <div className="modal-overlay">
-          <div className="modal-content">
-            <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>📺</div>
-            <h3 className="mb-sm">Watching Ad...</h3>
-            <div style={{ fontSize: '3rem', fontWeight: 800, color: 'var(--accent-primary)', margin: '20px 0', animation: 'countUp 0.3s ease' }}>
+          <div className="modal-content" style={{ padding: 0, overflow: 'hidden', position: 'relative', maxWidth: '300px' }}>
+            {/* Ad Container */}
+            <div style={{ width: '300px', height: '250px', background: 'rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '20px' }}>
+              <div className="flex-col gap-sm">
+                <div style={{ fontSize: '2rem' }}>📺</div>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Adsterra Ad Displaying...</p>
+              </div>
+            </div>
+
+            {/* Top Right Countdown Overlay */}
+            <div style={{ 
+              position: 'absolute', 
+              top: '12px', 
+              right: '12px', 
+              background: 'rgba(0,0,0,0.7)', 
+              backdropFilter: 'blur(4px)',
+              color: 'white', 
+              borderRadius: '50%', 
+              width: '38px', 
+              height: '38px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              fontWeight: 800,
+              fontSize: '1rem',
+              border: '2px solid var(--accent-primary)',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+              zIndex: 10
+            }}>
               {adCountdown}
             </div>
-            <div className="progress-bar">
-              <div className="progress-fill" style={{ width: `${((5 - adCountdown) / 5) * 100}%`, transition: 'width 1s linear' }} />
+
+            {/* Reward Progress Bar (Optional, thin at bottom) */}
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '4px', background: 'rgba(255,255,255,0.1)' }}>
+              <div style={{ height: '100%', background: 'var(--accent-primary)', width: `${((5 - adCountdown) / 5) * 100}%`, transition: 'width 1s linear' }} />
             </div>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '12px' }}>
-              You&apos;ll earn +1 hint when done!
-            </p>
           </div>
         </div>
       )}
@@ -314,6 +346,13 @@ export default function PlayPage() {
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: 1.5 }}>
                 {level.insight}
               </p>
+            </div>
+
+            {/* Level Complete Adsterra Banner (Rectangular like a button) */}
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+              <div style={{ width: '100%', maxWidth: '320px', height: '50px', background: 'rgba(0,0,0,0.05)', borderRadius: 'var(--radius-sm)', border: '1px dashed var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                ADSTERRA BANNER (320x50)
+              </div>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
