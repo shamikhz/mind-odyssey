@@ -124,7 +124,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // 1. Initial Load from LocalStorage
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const storage = (globalThis as any).localStorage;
+      const saved = storage?.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
         dispatch({ type: 'LOAD_SAVED', state: parsed });
@@ -184,7 +185,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (loaded) {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        const storage = (globalThis as any).localStorage;
+        storage?.setItem(STORAGE_KEY, JSON.stringify(state));
       } catch {
         // Ignore storage errors
       }

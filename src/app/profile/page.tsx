@@ -71,20 +71,20 @@ export default function ProfilePage() {
       setShowUpdateSuccess(true);
       setTimeout(() => setShowUpdateSuccess(false), 3000);
     } catch (err: any) {
-      alert('Error updating profile: ' + err.message);
+      (globalThis as any).alert('Error updating profile: ' + err.message);
     } finally {
       setLoading(false);
     }
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const file = (e.target as any).files?.[0];
     if (file) {
       if (file.size > 1024 * 1024) { // 1MB limit for Base64
-        alert('Image size should be less than 1MB');
+        (globalThis as any).alert('Image size should be less than 1MB');
         return;
       }
-      const reader = new FileReader();
+      const reader = new (globalThis as any).FileReader();
       reader.onloadend = () => {
         setAvatar(reader.result as string);
       };
@@ -103,7 +103,7 @@ export default function ProfilePage() {
           <div className="flex-col gap-lg">
             <div className="card text-center" style={{ padding: '32px' }}>
               <div 
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => (fileInputRef.current as any)?.click()}
                 style={{ 
                   width: '100px', height: '100px', borderRadius: '50%', 
                   background: 'var(--accent-gradient)', margin: '0 auto 16px', 
@@ -163,7 +163,7 @@ export default function ProfilePage() {
                   <input 
                     type="text" 
                     value={editName} 
-                    onChange={e => setEditName(e.target.value)} 
+                    onChange={e => setEditName((e.target as any).value)} 
                     style={{ width: '100%', background: 'var(--bg-tertiary)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '10px', color: 'var(--text-primary)', outline: 'none' }}
                   />
                 </div>

@@ -54,7 +54,8 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
 
   useEffect(() => {
     try {
-      const item = localStorage.getItem(key);
+      const storage = (globalThis as any).localStorage;
+      const item = storage?.getItem(key);
       if (item) setValue(JSON.parse(item));
     } catch { /* ignore */ }
   }, [key]);
@@ -62,7 +63,10 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
   const setStoredValue = useCallback((val: T | ((prev: T) => T)) => {
     setValue(prev => {
       const newVal = val instanceof Function ? val(prev) : val;
-      try { localStorage.setItem(key, JSON.stringify(newVal)); } catch { /* ignore */ }
+      try { 
+        const storage = (globalThis as any).localStorage;
+        storage?.setItem(key, JSON.stringify(newVal)); 
+      } catch { /* ignore */ }
       return newVal;
     });
   }, [key]);

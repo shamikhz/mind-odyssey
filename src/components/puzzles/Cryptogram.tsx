@@ -32,7 +32,7 @@ export default function Cryptogram({ onComplete }: Props) {
           {cipher}
         </div>
       </div>
-      <input type="text" value={input} onChange={e => setInput(e.target.value)}
+      <input type="text" value={input} onChange={e => setInput((e.target as any).value)}
         onKeyDown={e => e.key === 'Enter' && check()}
         placeholder="Type the decoded message..."
         style={{ background: 'var(--bg-tertiary)', border: '2px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '12px', fontSize: '1rem', color: 'var(--text-primary)', textAlign: 'center', width: '100%', outline: 'none', textTransform: 'uppercase' }}

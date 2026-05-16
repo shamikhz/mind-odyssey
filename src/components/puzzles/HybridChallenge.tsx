@@ -59,7 +59,7 @@ export default function HybridChallenge({ onComplete }: Props) {
         <div className="card" style={{ padding: '24px' }}>
           <h3 style={{ marginBottom: '12px' }}>🧠 Logic Phase</h3>
           <p style={{ color: 'var(--text-secondary)', marginBottom: '16px' }}>Solve: If x + 4 = 11 and y = x - 4, what is x − y + 4?</p>
-          <input type="text" value={code} onChange={e => setCode(e.target.value)} placeholder="Answer"
+          <input type="text" value={code} onChange={e => setCode((e.target as any).value)} placeholder="Answer"
             onKeyDown={e => e.key === 'Enter' && handleLogic()}
             style={{ background: 'var(--bg-tertiary)', border: '2px solid var(--border)', borderRadius: '8px', padding: '10px', fontSize: '1.2rem', textAlign: 'center', width: '80px', color: 'var(--text-primary)', outline: 'none' }}
             autoFocus />
@@ -74,7 +74,7 @@ export default function HybridChallenge({ onComplete }: Props) {
           <p style={{ color: 'var(--text-secondary)', marginBottom: '8px' }}>The first 4 multiples of your answer ({answer}) are:</p>
           <p style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--accent-primary)', marginBottom: '16px' }}>{sequence.join(', ')}</p>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '12px' }}>Type them separated by commas:</p>
-          <input type="text" value={memInput} onChange={e => setMemInput(e.target.value)} placeholder="7,14,21,28"
+          <input type="text" value={memInput} onChange={e => setMemInput((e.target as any).value)} placeholder="7,14,21,28"
             onKeyDown={e => e.key === 'Enter' && handleMemory()}
             style={{ background: 'var(--bg-tertiary)', border: '2px solid var(--border)', borderRadius: '8px', padding: '10px', fontSize: '1rem', textAlign: 'center', width: '100%', color: 'var(--text-primary)', outline: 'none' }} />
           <button className="btn btn-primary w-full mt-md" onClick={handleMemory}

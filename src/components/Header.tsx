@@ -19,7 +19,7 @@ export default function Header() {
   const [showShop, setShowShop] = React.useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+    const { name, value } = (e.target as any);
     setFormData(prev => ({ ...prev, [name]: value }));
     if (error) setError(null);
   };
@@ -96,7 +96,7 @@ export default function Header() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin
+        redirectTo: (globalThis as any).location?.origin || ''
       }
     });
     if (error) setError(error.message);

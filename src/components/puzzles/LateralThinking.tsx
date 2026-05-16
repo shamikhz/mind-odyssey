@@ -37,7 +37,7 @@ export default function LateralThinking({ onComplete }: Props) {
       </div>
       {showHint && <p style={{ color: 'var(--warning)', fontSize: '0.85rem', marginBottom: '12px' }}>💡 {riddles[current].hint}</p>}
       {!showHint && <button className="btn btn-ghost btn-sm mb-sm" onClick={() => setShowHint(true)}>Show extra hint</button>}
-      <input type="text" value={input} onChange={e => setInput(e.target.value)}
+      <input type="text" value={input} onChange={e => setInput((e.target as any).value)}
         onKeyDown={e => e.key === 'Enter' && check()}
         placeholder="Your answer..."
         style={{ background: 'var(--bg-tertiary)', border: '2px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '12px', fontSize: '1rem', color: 'var(--text-primary)', textAlign: 'center', width: '100%', outline: 'none' }}

@@ -34,7 +34,7 @@ export default function Rebus({ onComplete }: Props) {
         <div style={{ fontSize: '2.5rem', marginBottom: '8px' }}>{puzzles[current].images}</div>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{puzzles[current].hint}</p>
       </div>
-      <input type="text" value={input} onChange={e => setInput(e.target.value)}
+      <input type="text" value={input} onChange={e => setInput((e.target as any).value)}
         onKeyDown={e => e.key === 'Enter' && handleSubmit()}
         placeholder="What does this represent?"
         style={{ background: 'var(--bg-tertiary)', border: '2px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '12px', fontSize: '1rem', color: 'var(--text-primary)', textAlign: 'center', width: '100%', outline: 'none' }}

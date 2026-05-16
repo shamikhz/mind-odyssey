@@ -63,7 +63,7 @@ export default function EinsteinRiddle({ onComplete }: Props) {
                 <td style={{ padding: '6px', fontWeight: 600 }}>🏠 {i + 1}</td>
                 {[{ opts: nations, field: 'nation' }, { opts: colors, field: 'color' }, { opts: pets, field: 'pet' }].map(({ opts, field }) => (
                   <td key={field} style={{ padding: '4px' }}>
-                    <select value={grid[h][field as keyof typeof grid.h1]} onChange={e => handleChange(h, field, e.target.value)}
+                    <select value={grid[h][field as keyof typeof grid.h1]} onChange={e => handleChange(h, field, (e.target as any).value)}
                       style={{ background: 'var(--bg-tertiary)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: '4px', padding: '4px', width: '100%', fontSize: '0.8rem' }}>
                       <option value="">--</option>
                       {opts.map(o => <option key={o} value={o}>{o}</option>)}

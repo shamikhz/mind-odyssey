@@ -32,7 +32,7 @@ export default function ColorMixing({ onComplete }: Props) {
       {[{ label: '🔴 Red', value: r, set: setR }, { label: '🟢 Green', value: g, set: setG }, { label: '🔵 Blue', value: b, set: setB }].map(({ label, value, set }) => (
         <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
           <span style={{ fontSize: '0.8rem', width: '70px', textAlign: 'left' }}>{label}</span>
-          <input type="range" min="0" max="255" value={value} onChange={e => set(Number(e.target.value))}
+          <input type="range" min="0" max="255" value={value} onChange={e => set(Number((e.target as any).value))}
             style={{ flex: 1, accentColor: 'var(--accent-primary)' }} />
           <span style={{ fontSize: '0.8rem', width: '30px' }}>{value}</span>
         </div>

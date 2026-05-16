@@ -51,14 +51,14 @@ export default function LogicGrid({ onComplete }: Props) {
               <tr key={person} style={{ borderBottom: '1px solid var(--border)' }}>
                 <td style={{ padding: '8px', fontWeight: 600 }}>{person}</td>
                 <td style={{ padding: '8px' }}>
-                  <select value={grid[person].pet} onChange={e => handleChange(person, 'pet', e.target.value)}
+                  <select value={grid[person].pet} onChange={e => handleChange(person, 'pet', (e.target as any).value)}
                     style={{ background: 'var(--bg-tertiary)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: '6px', padding: '6px 8px', width: '100%' }}>
                     <option value="">--</option>
                     {pets.map(p => <option key={p} value={p}>{p}</option>)}
                   </select>
                 </td>
                 <td style={{ padding: '8px' }}>
-                  <select value={grid[person].color} onChange={e => handleChange(person, 'color', e.target.value)}
+                  <select value={grid[person].color} onChange={e => handleChange(person, 'color', (e.target as any).value)}
                     style={{ background: 'var(--bg-tertiary)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: '6px', padding: '6px 8px', width: '100%' }}>
                     <option value="">--</option>
                     {colors.map(c => <option key={c} value={c}>{c}</option>)}

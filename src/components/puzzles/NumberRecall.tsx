@@ -44,7 +44,7 @@ export default function NumberRecall({ onComplete }: Props) {
       ) : (
         <div>
           <p style={{ marginBottom: '12px', color: 'var(--text-secondary)' }}>Type the numbers:</p>
-          <input type="text" value={input} onChange={e => setInput(e.target.value.replace(/\D/g, ''))}
+          <input type="text" value={input} onChange={e => setInput((e.target as any).value.replace(/\D/g, ''))}
             onKeyDown={e => e.key === 'Enter' && handleSubmit()}
             style={{
               background: 'var(--bg-tertiary)', border: '2px solid var(--border)', borderRadius: 'var(--radius-md)',

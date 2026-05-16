@@ -39,12 +39,12 @@ export default function MazeHard({ onComplete }: Props) {
   }, [maze, onComplete, endPos.r, endPos.c, size]);
 
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
+    const handler = (e: any) => {
       if (e.key==='ArrowUp') move(-1,0); else if (e.key==='ArrowDown') move(1,0);
       else if (e.key==='ArrowLeft') move(0,-1); else if (e.key==='ArrowRight') move(0,1);
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    (globalThis as any).window?.addEventListener('keydown', handler);
+    return () => (globalThis as any).window?.removeEventListener('keydown', handler);
   }, [move]);
 
   return (

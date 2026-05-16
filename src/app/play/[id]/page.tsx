@@ -164,11 +164,13 @@ export default function PlayPage() {
 
   const handleShare = async () => {
     const text = `🧠 Mind Odyssey - Level ${levelId}: ${level?.name}\n${'⭐'.repeat(stars)} in ${timer.format(timer.seconds)}\nCan you beat my score?`;
-    if (navigator.share) {
-      try { await navigator.share({ title: 'Mind Odyssey', text }); } catch {}
-    } else {
-      await navigator.clipboard.writeText(text);
-      alert('Result copied to clipboard!');
+    const nav = (globalThis as any).navigator;
+    
+    if (nav && nav.share) {
+      try { await nav.share({ title: 'Mind Odyssey', text }); } catch {}
+    } else if (nav && nav.clipboard) {
+      await nav.clipboard.writeText(text);
+      (globalThis as any).alert('Result copied to clipboard!');
     }
   };
 

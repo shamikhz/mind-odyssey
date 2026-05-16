@@ -32,7 +32,7 @@ export default function FinalChallenge({ onComplete }: Props) {
       desc: 'What is 2, 6, 18, 54, ?',
       render: () => (
         <div>
-          <input type="text" value={seqAnswer} onChange={e => setSeqAnswer(e.target.value)}
+          <input type="text" value={seqAnswer} onChange={e => setSeqAnswer((e.target as any).value)}
             onKeyDown={e => e.key==='Enter' && checkPhase()}
             style={{ background: 'var(--bg-tertiary)', border: '2px solid var(--border)', borderRadius: '8px', padding: '10px', fontSize: '1.2rem', textAlign: 'center', width: '80px', color: 'var(--text-primary)', outline: 'none' }}
             autoFocus />
@@ -57,7 +57,7 @@ export default function FinalChallenge({ onComplete }: Props) {
       title: '🎨 Creativity',
       desc: 'Unscramble: YDSOSE',
       render: () => (
-        <input type="text" value={wordInput} onChange={e => setWordInput(e.target.value)}
+        <input type="text" value={wordInput} onChange={e => setWordInput((e.target as any).value)}
           onKeyDown={e => e.key==='Enter' && checkPhase()}
           placeholder="Answer" autoFocus
           style={{ background: 'var(--bg-tertiary)', border: '2px solid var(--border)', borderRadius: '8px', padding: '10px', fontSize: '1.1rem', textAlign: 'center', width: '160px', color: 'var(--text-primary)', outline: 'none', textTransform: 'uppercase' }} />
@@ -68,7 +68,7 @@ export default function FinalChallenge({ onComplete }: Props) {
       title: '🏆 Final Code',
       desc: 'Enter the name of this game (two words)',
       render: () => (
-        <input type="text" value={finalInput} onChange={e => setFinalInput(e.target.value)}
+        <input type="text" value={finalInput} onChange={e => setFinalInput((e.target as any).value)}
           onKeyDown={e => e.key==='Enter' && checkPhase()}
           placeholder="_ _ _ _   _ _ _ _ _ _ _" autoFocus
           style={{ background: 'var(--bg-tertiary)', border: '2px solid var(--border)', borderRadius: '8px', padding: '10px', fontSize: '1.1rem', textAlign: 'center', width: '220px', color: 'var(--text-primary)', outline: 'none', textTransform: 'uppercase' }} />

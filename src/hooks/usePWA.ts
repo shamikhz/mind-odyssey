@@ -12,9 +12,8 @@ export function usePWA() {
       setIsInstallable(true);
     };
 
-    window.addEventListener('beforeinstallprompt', handler);
-
-    return () => window.removeEventListener('beforeinstallprompt', handler);
+    (globalThis as any).window?.addEventListener('beforeinstallprompt', handler);
+    return () => (globalThis as any).window?.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
   const install = async () => {

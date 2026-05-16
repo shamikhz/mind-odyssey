@@ -39,7 +39,7 @@ export default function Anagram({ onComplete }: Props) {
           }}>{l}</div>
         ))}
       </div>
-      <input type="text" value={input} onChange={e => setInput(e.target.value)}
+      <input type="text" value={input} onChange={e => setInput((e.target as any).value)}
         onKeyDown={e => e.key === 'Enter' && handleSubmit()}
         placeholder="Type the word..."
         style={{

@@ -59,7 +59,7 @@ export default function FaceName({ onComplete }: Props) {
             {shuffledFaces.map(f => (
               <div key={f.emoji} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <span style={{ fontSize: '2rem' }}>{f.emoji}</span>
-                <select value={answers[f.emoji] || ''} onChange={e => handleChange(f.emoji, e.target.value)}
+                <select value={answers[f.emoji] || ''} onChange={e => handleChange(f.emoji, (e.target as any).value)}
                   style={{ flex: 1, background: 'var(--bg-tertiary)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: '6px', padding: '8px' }}>
                   <option value="">Select name...</option>
                   {names.map(n => <option key={n} value={n}>{n}</option>)}
