@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useGame } from '@/contexts/GameContext';
+import { supabase } from '@/lib/supabase';
 
 const skillCategories = [
   { key: 'logic', label: 'Logic', icon: '🧠', color: '#a78bfa' },
@@ -23,20 +24,72 @@ function formatTime(seconds: number): string {
 export default function ProfilePage() {
   const { state, getLevelsCleared, getTotalStars, getCategoryScore, dispatch } = useGame();
   const [editName, setEditName] = useState(state.playerName);
+  const [avatar, setAvatar] = useState(state.user.avatar || '');
   const [showUpdateSuccess, setShowUpdateSuccess] = useState(false);
   const [showReset, setShowReset] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Sync with global state if it changes
+  React.useEffect(() => {
+    setEditName(state.playerName);
+    setAvatar(state.user.avatar || '');
+  }, [state.playerName, state.user.avatar]);
 
   const handleReset = () => {
     dispatch({ type: 'RESET_PROGRESS' });
     setShowReset(false);
   };
 
-  const handleUpdateProfile = (e: React.FormEvent) => {
+  const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    dispatch({ type: 'UPDATE_PROFILE', updates: { name: editName } });
-    dispatch({ type: 'SET_PLAYER_NAME', name: editName });
-    setShowUpdateSuccess(true);
-    setTimeout(() => setShowUpdateSuccess(false), 3000);
+    if (!state.user.id) return;
+    
+    setLoading(true);
+    try {
+      // 1. Update Supabase Database
+      const { error } = await supabase
+        .from('profiles')
+        .upsert(
+          {
+            id: state.user.id,
+            full_name: editName,
+            avatar: avatar,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'id' }
+        );
+
+      if (error) {
+        console.error('Supabase Error:', error);
+        throw error;
+      }
+
+      // 2. Update Local State
+      dispatch({ type: 'UPDATE_PROFILE', updates: { name: editName, avatar } });
+      dispatch({ type: 'SET_PLAYER_NAME', name: editName });
+      setShowUpdateSuccess(true);
+      setTimeout(() => setShowUpdateSuccess(false), 3000);
+    } catch (err: any) {
+      alert('Error updating profile: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 1024 * 1024) { // 1MB limit for Base64
+        alert('Image size should be less than 1MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatar(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
@@ -49,9 +102,34 @@ export default function ProfilePage() {
           {/* Left Column: Stats */}
           <div className="flex-col gap-lg">
             <div className="card text-center" style={{ padding: '32px' }}>
-              <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--accent-gradient)', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', fontWeight: 800, color: 'white' }}>
-                {state.user.name ? state.user.name[0] : (state.playerName ? state.playerName[0] : 'P')}
+              <div 
+                onClick={() => fileInputRef.current?.click()}
+                style={{ 
+                  width: '100px', height: '100px', borderRadius: '50%', 
+                  background: 'var(--accent-gradient)', margin: '0 auto 16px', 
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                  fontSize: '2.5rem', fontWeight: 800, color: 'white',
+                  cursor: 'pointer', overflow: 'hidden', position: 'relative',
+                  border: '4px solid var(--bg-tertiary)',
+                  boxShadow: 'var(--shadow-glow)'
+                }}
+              >
+                {avatar ? (
+                  <img src={avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <span>{state.user.name ? state.user.name[0] : (state.playerName ? state.playerName[0] : 'P')}</span>
+                )}
+                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.6)', fontSize: '0.65rem', padding: '4px 0', fontWeight: 700, color: 'white', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  Change
+                </div>
               </div>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleImageChange} 
+                accept="image/*" 
+                style={{ display: 'none' }} 
+              />
               <h2><span className="gradient-text">{state.playerName}</span></h2>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{state.user.email || 'Adventurer'}</p>
             </div>
@@ -89,7 +167,9 @@ export default function ProfilePage() {
                     style={{ width: '100%', background: 'var(--bg-tertiary)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '10px', color: 'var(--text-primary)', outline: 'none' }}
                   />
                 </div>
-                <button type="submit" className="btn btn-primary w-full mt-sm">Update Profile</button>
+                <button type="submit" className="btn btn-primary w-full mt-sm" disabled={loading}>
+                  {loading ? <div className="loading-spinner" style={{ width: '20px', height: '20px', borderWidth: '2px' }} /> : 'Update Profile'}
+                </button>
                 {showUpdateSuccess && <p style={{ color: 'var(--success)', fontSize: '0.85rem', textAlign: 'center' }}>✅ Profile updated!</p>}
               </form>
             </div>

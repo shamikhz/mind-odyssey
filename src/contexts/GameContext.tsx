@@ -52,6 +52,11 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         hintsRemaining: state.hintsRemaining + 1,
       };
+    case 'BUY_HINTS':
+      return {
+        ...state,
+        hintsRemaining: state.hintsRemaining + action.count,
+      };
     case 'ADD_TIME':
       return {
         ...state,
@@ -102,26 +107,77 @@ interface GameContextType {
   getTotalStars: () => number;
   getLevelsCleared: () => number;
   getCategoryScore: (category: string) => number;
+  showAuthModal: boolean;
+  setShowAuthModal: (show: boolean) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
+import { supabase } from '@/lib/supabase';
+
 export function GameProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(gameReducer, initialState);
   const [loaded, setLoaded] = React.useState(false);
+  const [showAuthModal, setShowAuthModal] = React.useState(false);
 
-  // Load saved state on mount
+  // Load saved state and sync with Supabase Auth
   useEffect(() => {
+    // 1. Initial Load from LocalStorage
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
         dispatch({ type: 'LOAD_SAVED', state: parsed });
       }
-    } catch {
-      // Ignore parse errors
-    }
+    } catch {}
+
+    // 2. Sync with Supabase Auth
+    const syncAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        // Fetch profile data from database
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        dispatch({ type: 'LOGIN', user: {
+          id: session.user.id,
+          name: profile?.full_name || session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Player',
+          email: session.user.email || '',
+          avatar: profile?.avatar || ''
+        }});
+      }
+    };
+
+    syncAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        // Fetch profile data from database
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        dispatch({ type: 'LOGIN', user: {
+          id: session.user.id,
+          name: profile?.full_name || session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Player',
+          email: session.user.email || '',
+          avatar: profile?.avatar || ''
+        }});
+      } else {
+        dispatch({ type: 'LOGOUT' });
+      }
+    });
+
     setLoaded(true);
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Persist state on every change
@@ -195,6 +251,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       getTotalStars,
       getLevelsCleared,
       getCategoryScore,
+      showAuthModal,
+      setShowAuthModal,
     }}>
       {children}
     </GameContext.Provider>

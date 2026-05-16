@@ -6,7 +6,7 @@
   --bg-primary: #0a0a1a;
   --bg-secondary: #12122a;
   --bg-tertiary: #1a1a3e;
-  --bg-card: rgba(26, 26, 62, 0.7);
+  --bg-card: rgba(26, 26, 62, 0.9);
   --accent-primary: #7c3aed;
   --accent-secondary: #06b6d4;
   --accent-gradient: linear-gradient(135deg, #7c3aed, #06b6d4);
@@ -118,7 +118,7 @@ h3 { font-size: clamp(1.1rem, 2.5vw, 1.5rem); font-weight: 600; }
 /* ── Cards ───────────────────────────── */
 .card {
   background: var(--bg-card);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(6px);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 24px;
@@ -291,6 +291,23 @@ h3 { font-size: clamp(1.1rem, 2.5vw, 1.5rem); font-weight: 600; }
 .top-bar-item {
   display: flex; align-items: center; gap: 6px;
   font-size: 0.9rem; color: var(--text-secondary);
+}
+.logo-text {
+  font-size: 1.2rem;
+}
+@media (max-width: 400px) {
+  .logo-text { display: none; }
+}
+.mobile-install-btn {
+  display: none;
+}
+@media (max-width: 480px) {
+  .mobile-install-btn { display: flex; }
+  .desktop-install-btn { display: none; }
+}
+@media (min-width: 481px) {
+  .mobile-install-btn { display: none; }
+  .desktop-install-btn { display: flex; }
 }
 
 /* ── Bottom Bar (Gameplay) ───────────── */

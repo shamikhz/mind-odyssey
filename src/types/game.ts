@@ -68,4 +68,5 @@ export type GameAction =
   | { type: 'LOGIN'; user: Partial<UserProfile> }
   | { type: 'LOGOUT' }
   | { type: 'UPDATE_PROFILE'; updates: Partial<UserProfile> }
-  | { type: 'ADD_TIME'; seconds: number };
+  | { type: 'ADD_TIME'; seconds: number }
+  | { type: 'BUY_HINTS'; count: number };
