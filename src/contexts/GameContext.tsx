@@ -90,7 +90,11 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         user: { ...state.user, ...action.updates },
       };
     case 'RESET_PROGRESS':
-      return { ...initialState };
+      return { 
+        ...initialState, 
+        user: state.user,
+        playerName: state.playerName
+      };
     case 'LOAD_SAVED':
       return { ...initialState, ...action.state, user: { ...initialState.user, ...action.state.user } };
     default:

@@ -36,9 +36,28 @@ export default function ProfilePage() {
     setAvatar(state.user.avatar || '');
   }, [state.playerName, state.user.avatar]);
 
-  const handleReset = () => {
-    dispatch({ type: 'RESET_PROGRESS' });
-    setShowReset(false);
+  const handleReset = async () => {
+    setLoading(true);
+    try {
+      if (state.user.id) {
+        // Also reset in Supabase
+        await supabase
+          .from('profiles')
+          .update({
+            progress: {},
+            total_stars: 0,
+            levels_cleared: 0,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', state.user.id);
+      }
+      dispatch({ type: 'RESET_PROGRESS' });
+      setShowReset(false);
+    } catch (err: any) {
+      console.error('Reset error:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
