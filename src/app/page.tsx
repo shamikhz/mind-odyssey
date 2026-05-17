@@ -13,7 +13,6 @@ export default function LandingPage() {
   const router = useRouter();
   const hasProgress = getLevelsCleared() > 0;
   const [showComingSoon, setShowComingSoon] = React.useState(false);
-  const [showResetModal, setShowResetModal] = React.useState(false);
 
   const handleProtectedAction = (e: React.MouseEvent, target: string) => {
     e.preventDefault();
@@ -80,17 +79,19 @@ export default function LandingPage() {
           }} className="btn btn-ghost w-full">
             🏆 Global Leaderboard
           </button>
-          {hasProgress && (
-            <button onClick={() => setShowResetModal(true)} className="btn btn-ghost btn-sm w-full" style={{ color: 'var(--danger)', opacity: 0.8, marginTop: '10px' }}>
-              🗑️ Reset All Progress
-            </button>
-          )}
         </div>
 
         {/* Footer */}
         <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginTop: '20px' }}>
           Train your brain. Discover your mind. 🚀
         </p>
+
+        {/* Adsterra Homepage Banner (728x90) */}
+        <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginTop: '10px', paddingBottom: '20px' }}>
+          <div style={{ width: '100%', maxWidth: '728px', height: '90px', background: 'rgba(0,0,0,0.05)', borderRadius: 'var(--radius-sm)', border: '1px dashed var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+            ADSTERRA BANNER (728x90)
+          </div>
+        </div>
       </div>
 
       {/* Coming Soon Alert */}
@@ -105,26 +106,6 @@ export default function LandingPage() {
             <button className="btn btn-primary w-full" onClick={() => setShowComingSoon(false)}>
               Got it
             </button>
-          </div>
-        </div>
-      )}
-      {/* Reset Confirmation Modal */}
-      {showResetModal && (
-        <div className="modal-overlay" onClick={() => setShowResetModal(false)} style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '360px', width: '90%', margin: 'auto' }}>
-            <div style={{ fontSize: '3rem', marginBottom: '16px' }}>⚠️</div>
-            <h3 className="mb-sm">Reset Progress?</h3>
-            <p className="mb-md" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-              This will permanently delete all your cleared levels, stars, and time records. This action cannot be undone.
-            </p>
-            <div className="flex-col gap-sm">
-              <button className="btn btn-danger w-full" onClick={() => { dispatch({ type: 'RESET_PROGRESS' }); setShowResetModal(false); }}>
-                Yes, Reset Everything
-              </button>
-              <button className="btn btn-secondary w-full" onClick={() => setShowResetModal(false)}>
-                Cancel
-              </button>
-            </div>
           </div>
         </div>
       )}

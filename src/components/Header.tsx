@@ -102,35 +102,23 @@ export default function Header() {
     if (error) setError(error.message);
   };
 
-  const handleLogout = async () => {
+  const handleLogout = async (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
     try {
-      setLoading(true);
       await supabase.auth.signOut();
       dispatch({ type: 'LOGOUT' });
       setShowDropdown(false);
-      
+      // Force a full page reload to clear all memory state
       if (typeof window !== 'undefined') {
-        if (window.location.pathname === '/') {
-          window.location.reload();
-        } else {
-          router.push('/');
-          setTimeout(() => window.location.reload(), 100);
-        }
+        window.location.reload();
       }
     } catch (err) {
       console.error('Logout error:', err);
       // Fallback if signOut fails
       dispatch({ type: 'LOGOUT' });
       if (typeof window !== 'undefined') {
-        if (window.location.pathname === '/') {
-          window.location.reload();
-        } else {
-          router.push('/');
-          setTimeout(() => window.location.reload(), 100);
-        }
+        window.location.reload();
       }
-    } finally {
-      setLoading(false);
     }
   };
 
