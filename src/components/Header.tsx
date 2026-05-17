@@ -7,6 +7,12 @@ import { usePWA } from '@/hooks/usePWA';
 import { useGame } from '@/contexts/GameContext';
 import { supabase } from '@/lib/supabase';
 
+interface RazorpayResponse {
+  razorpay_payment_id: string;
+  razorpay_order_id?: string;
+  razorpay_signature?: string;
+}
+
 export default function Header() {
   const { isInstallable, install } = usePWA();
   const { state, dispatch, showAuthModal, setShowAuthModal } = useGame();

@@ -120,7 +120,7 @@ const GameContext = createContext<GameContextType | undefined>(undefined);
 import { supabase } from '@/lib/supabase';
 
 export function GameProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = useReducer(gameReducer, initialState);
+
   const [loaded, setLoaded] = React.useState(false);
   const [showAuthModal, setShowAuthModal] = React.useState(false);
 
