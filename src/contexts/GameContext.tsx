@@ -124,67 +124,70 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const [loaded, setLoaded] = React.useState(false);
   const [showAuthModal, setShowAuthModal] = React.useState(false);
 
-  // Load saved state and sync with Supabase Auth
-  useEffect(() => {
-    // 1. Initial Load from LocalStorage
-    try {
-      const storage = (globalThis as any).localStorage;
-      const saved = storage?.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        dispatch({ type: 'LOAD_SAVED', state: parsed });
-      }
-    } catch {}
+  // Initialize state from localStorage (lazy initializer)
+  const initState = (initial: typeof initialState) => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = window.localStorage?.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          return { ...initial, ...parsed, user: { ...initial.user, ...parsed.user } };
+        }
+      } catch {}
+    }
+    return initial;
+  };
 
-    // 2. Sync with Supabase Auth
+  const [state, dispatch] = useReducer(gameReducer, initialState, initState);
+
+  // Sync with Supabase Auth (no state loading here)
+  useEffect(() => {
     const syncAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
-        // Fetch profile data from database
         const { data: profile } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', session.user.id)
           .single();
-
-        dispatch({ type: 'LOGIN', user: {
-          id: session.user.id,
-          name: profile?.full_name || session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Player',
-          email: session.user.email || '',
-          avatar: profile?.avatar || ''
-        }});
+        dispatch({
+          type: 'LOGIN',
+          user: {
+            id: session.user.id,
+            name: profile?.full_name || session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Player',
+            email: session.user.email || '',
+            avatar: profile?.avatar || ''
+          }
+        });
       } else {
         dispatch({ type: 'LOGOUT' });
       }
     };
-
     syncAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
-        // Fetch profile data from database
         const { data: profile } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', session.user.id)
           .single();
-
-        dispatch({ type: 'LOGIN', user: {
-          id: session.user.id,
-          name: profile?.full_name || session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Player',
-          email: session.user.email || '',
-          avatar: profile?.avatar || ''
-        }});
+        dispatch({
+          type: 'LOGIN',
+          user: {
+            id: session.user.id,
+            name: profile?.full_name || session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Player',
+            email: session.user.email || '',
+            avatar: profile?.avatar || ''
+          }
+        });
       } else {
         dispatch({ type: 'LOGOUT' });
       }
     });
 
     setLoaded(true);
-
-    return () => {
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
   // Persist state on every change

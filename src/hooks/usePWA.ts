@@ -2,18 +2,18 @@
 import { useState, useEffect } from 'react';
 
 export function usePWA() {
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstallable, setIsInstallable] = useState(false);
 
   useEffect(() => {
-    const handler = (e: any) => {
+    const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
       setIsInstallable(true);
     };
 
-    (globalThis as any).window?.addEventListener('beforeinstallprompt', handler);
-    return () => (globalThis as any).window?.removeEventListener('beforeinstallprompt', handler);
+    if (typeof window !== 'undefined') { window.addEventListener('beforeinstallprompt', handler as EventListener); }
+    return () => { if (typeof window !== 'undefined') { window.removeEventListener('beforeinstallprompt', handler as EventListener); } };
   }, []);
 
   const install = async () => {

@@ -19,7 +19,7 @@ export default function Header() {
   const [showShop, setShowShop] = React.useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = (e.target as any);
+    const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     if (error) setError(null);
   };
@@ -85,8 +85,8 @@ export default function Header() {
           setFormData({ name: '', email: '', password: '' });
         }
       }
-    } catch (err: any) {
-      setError(err.message || 'An error occurred during authentication');
+    } catch (err: unknown) {
+      if (err instanceof Error) setError(err.message); else setError('An unknown error occurred');
     } finally {
       setLoading(false);
     }
@@ -143,7 +143,7 @@ export default function Header() {
         name: 'Mind Odyssey',
         description: `Purchase ${count} Hints`,
         order_id: order.id,
-        handler: async function (response: any) {
+        handler: async function (response: RazorpayResponse) {
           try {
             // Record payment in Supabase
             if (state.user.id) {
@@ -159,7 +159,7 @@ export default function Header() {
             
             // Success!
             dispatch({ type: 'BUY_HINTS', count });
-            (globalThis as any).alert(`Success! ${count} hints added to your account.`);
+            window.alert(`Success! ${count} hints added to your account.`);
             setShowDropdown(false);
             setShowShop(false);
           } catch (dbError) {
@@ -177,9 +177,9 @@ export default function Header() {
 
       const rzp = new (window as any).Razorpay(options);
       rzp.open();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Payment Error:', err);
-      (globalThis as any).alert('Payment initialization failed. Please try again.');
+      if (err instanceof Error) window.alert('Payment initialization failed. Please try again.'); else window.alert('Payment initialization failed.');
     } finally {
       setLoading(false);
     }

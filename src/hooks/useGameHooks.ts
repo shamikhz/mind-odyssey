@@ -50,22 +50,22 @@ export function useHints(levelHints: string[], hintsRemaining: number, dispatch:
 }
 
 export function useLocalStorage<T>(key: string, initialValue: T) {
-  const [value, setValue] = useState<T>(initialValue);
-
-  useEffect(() => {
+  const [value, setValue] = useState<T>(() => {
     try {
-      const storage = (globalThis as any).localStorage;
+      const storage = typeof window !== 'undefined' ? window.localStorage : null;
       const item = storage?.getItem(key);
-      if (item) setValue(JSON.parse(item));
-    } catch { /* ignore */ }
-  }, [key]);
+      return item ? JSON.parse(item) : initialValue;
+    } catch {
+      return initialValue;
+    }
+  });
 
   const setStoredValue = useCallback((val: T | ((prev: T) => T)) => {
     setValue(prev => {
       const newVal = val instanceof Function ? val(prev) : val;
       try { 
-        const storage = (globalThis as any).localStorage;
-        storage?.setItem(key, JSON.stringify(newVal)); 
+        const storage = typeof window !== 'undefined' ? window.localStorage : null;
+        if (storage) { storage.setItem(key, JSON.stringify(newVal)); }
       } catch { /* ignore */ }
       return newVal;
     });
