@@ -37,7 +37,7 @@ export default function LandingPage() {
         </div>
 
         {/* Progress Preview */}
-        {hasProgress && (
+        {state.user.isLoggedIn && hasProgress && (
           <div className="card" style={{ animation: 'slideUp 0.6s ease 0.2s both', maxWidth: '360px', width: '100%' }}>
             <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
               <div className="stat-card" style={{ padding: '12px' }}>
