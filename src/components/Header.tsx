@@ -104,20 +104,33 @@ export default function Header() {
 
   const handleLogout = async () => {
     try {
+      setLoading(true);
       await supabase.auth.signOut();
       dispatch({ type: 'LOGOUT' });
       setShowDropdown(false);
-      // Force a full page reload to clear all memory state
+      
       if (typeof window !== 'undefined') {
-        window.location.href = '/';
+        if (window.location.pathname === '/') {
+          window.location.reload();
+        } else {
+          router.push('/');
+          setTimeout(() => window.location.reload(), 100);
+        }
       }
     } catch (err) {
       console.error('Logout error:', err);
       // Fallback if signOut fails
       dispatch({ type: 'LOGOUT' });
       if (typeof window !== 'undefined') {
-        window.location.href = '/';
+        if (window.location.pathname === '/') {
+          window.location.reload();
+        } else {
+          router.push('/');
+          setTimeout(() => window.location.reload(), 100);
+        }
       }
+    } finally {
+      setLoading(false);
     }
   };
 

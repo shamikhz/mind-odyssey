@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { GameProvider } from "@/contexts/GameContext";
+import Script from "next/script";
 
 export const viewport = {
   themeColor: "#7c3aed",
@@ -31,7 +32,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <GameProvider>{children}</GameProvider>
-        <script src="https://checkout.razorpay.com/v1/checkout.js" async />
+        <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
         <script dangerouslySetInnerHTML={{ __html: `
           if ('serviceWorker' in (globalThis as any).navigator) {
             window.addEventListener('load', function() {
