@@ -206,21 +206,9 @@ export default function Header() {
             Mind Odyssey
           </span>
         </Link>
-        {isInstallable && (
-          <button className="btn btn-secondary btn-sm mobile-install-btn" onClick={install} style={{ padding: '6px 10px', gap: '4px' }}>
-            <Download size={14} />
-            <span style={{ fontSize: '0.7rem', fontWeight: 700 }}>Install</span>
-          </button>
-        )}
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        {isInstallable && (
-          <button className="btn btn-secondary btn-sm desktop-install-btn" onClick={install} style={{ padding: '8px 12px', gap: '6px' }}>
-            <Download size={18} />
-            <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>Install</span>
-          </button>
-        )}
 
         {state.user.isLoggedIn ? (
           <div style={{ position: 'relative' }}>
