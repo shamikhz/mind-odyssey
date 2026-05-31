@@ -24,17 +24,14 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-  if (e.request.method !== 'GET') return;
-
-  e.respondWith(
-    fetch(e.request).catch((error) => {
-      // Return the offline page for navigation requests when offline
-      if (e.request.mode === 'navigate') {
+  // Only intercept navigation requests for the offline fallback
+  if (e.request.mode === 'navigate') {
+    e.respondWith(
+      fetch(e.request).catch(() => {
         return caches.match(OFFLINE_URL);
-      }
-      throw error;
-    })
-  );
+      })
+    );
+  }
 });
 
 self.addEventListener('sync', (e) => {
