@@ -31,7 +31,7 @@ export default function LevelsPage() {
             <Link href="/" className="btn btn-ghost btn-sm" style={{ marginBottom: '8px', display: 'inline-flex' }}>← Back</Link>
             <h2><span className="gradient-text">Level Select</span></h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-              {getLevelsCleared()}/50 cleared · {totalStars}/{maxStars} ⭐
+              {getLevelsCleared()}/{levels.length} cleared · {totalStars}/{maxStars} ⭐
             </p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -41,21 +41,10 @@ export default function LevelsPage() {
 
         {/* Progress Bar */}
         <div className="progress-bar mb-md">
-          <div className="progress-fill" style={{ width: `${(getLevelsCleared() / 50) * 100}%` }} />
+          <div className="progress-fill" style={{ width: `${(getLevelsCleared() / levels.length) * 100}%` }} />
         </div>
 
-        {/* Filter Tabs */}
-        <div className="filter-tabs">
-          {categories.map(cat => (
-            <button
-              key={cat.key}
-              className={`filter-tab ${filter === cat.key ? 'active' : ''}`}
-              onClick={() => setFilter(cat.key)}
-            >
-              {cat.icon} {cat.label}
-            </button>
-          ))}
-        </div>
+        {/* Filter Tabs (Hidden) */}
 
         {/* Level Grid */}
         <div className="level-grid">
@@ -82,6 +71,18 @@ export default function LevelsPage() {
               </button>
             );
           })}
+        </div>
+
+        {/* Third Party Ad Banner (728x90) */}
+        <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginTop: '20px', paddingBottom: '20px', overflow: 'hidden' }}>
+          <iframe 
+            src="/ad-728.html" 
+            width="728" 
+            height="90" 
+            frameBorder="0" 
+            scrolling="no" 
+            style={{ maxWidth: '100%' }}
+          />
         </div>
 
       </div>

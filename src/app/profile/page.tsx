@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useGame } from '@/contexts/GameContext';
 import { supabase } from '@/lib/supabase';
+import { personalityInsights } from '@/data/personalityInsights';
 
 const skillCategories = [
   { key: 'logic', label: 'Logic', icon: '🧠', color: '#a78bfa' },
@@ -39,23 +40,21 @@ export default function ProfilePage() {
   const handleReset = async () => {
     setLoading(true);
     try {
-      if (state.user.id) {
-        // Also reset in Supabase
-        await supabase
-          .from('profiles')
-          .update({
-            progress: {},
-            total_stars: 0,
-            levels_cleared: 0,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', state.user.id);
+      if (state.user.isLoggedIn && state.user.id) {
+        const { error } = await supabase.from('profiles').update({
+          progress: {},
+          totalTimePlayed: 0,
+          currentLevel: 1,
+          hintsRemaining: 10
+        }).eq('id', state.user.id);
+        
+        if (error) console.error('Supabase error on reset:', error);
       }
-      dispatch({ type: 'RESET_PROGRESS' });
-      setShowReset(false);
     } catch (err: any) {
       console.error('Reset error:', err);
     } finally {
+      dispatch({ type: 'RESET_PROGRESS' });
+      setShowReset(false);
       setLoading(false);
     }
   };
@@ -66,22 +65,15 @@ export default function ProfilePage() {
     
     setLoading(true);
     try {
-      // 1. Update Supabase Database
-      const { error } = await supabase
-        .from('profiles')
-        .upsert(
-          {
-            id: state.user.id,
-            full_name: editName,
-            avatar: avatar,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: 'id' }
-        );
+      // 1. Update DB via Supabase
+      const { error } = await supabase.from('profiles').update({
+        name: editName,
+        avatar: avatar,
+      }).eq('id', state.user.id);
 
       if (error) {
         console.error('Supabase Error:', error);
-        throw error;
+        throw new Error(error.message || 'Failed to update profile');
       }
 
       // 2. Update Local State
@@ -112,8 +104,20 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="page" style={{ paddingTop: '80px' }}>
-      <div className="page-content" style={{ maxWidth: '900px' }}>
+    <div className="page" style={{ paddingTop: '80px', display: 'flex', justifyContent: 'center', gap: '24px', maxWidth: '100vw', overflowX: 'hidden' }}>
+      
+      {/* Left Ad Sidebar (Hidden on mobile/tablets) */}
+      <div className="ad-sidebar hidden-mobile" style={{ width: '160px', flexShrink: 0 }}>
+        <iframe 
+          src="/ad-160x600.html" 
+          width="160" 
+          height="600" 
+          frameBorder="0" 
+          scrolling="no" 
+        />
+      </div>
+
+      <div className="page-content" style={{ maxWidth: '900px', flex: 1, padding: '0 16px' }}>
         <Link href="/" className="btn btn-ghost btn-sm mb-md" style={{ display: 'inline-flex' }}>← Back</Link>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
@@ -158,10 +162,10 @@ export default function ProfilePage() {
               {skillCategories.map(cat => {
                 const score = getCategoryScore(cat.key);
                 return (
-                  <div key={cat.key} className="skill-bar">
-                    <div className="skill-bar-header">
-                      <span className="skill-bar-label">{cat.icon} {cat.label}</span>
-                      <span className="skill-bar-value">{score}%</span>
+                  <div key={cat.key} style={{ marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 600 }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>{cat.icon} {cat.label}</span>
+                      <span>{score}%</span>
                     </div>
                     <div className="progress-bar">
                       <div className="progress-fill" style={{ width: `${score}%`, background: `linear-gradient(90deg, ${cat.color}, ${cat.color}88)` }} />
@@ -169,28 +173,6 @@ export default function ProfilePage() {
                   </div>
                 );
               })}
-            </div>
-          </div>
-
-          {/* Right Column: Settings */}
-          <div className="flex-col gap-lg">
-            <div className="card">
-              <h3 className="mb-md">⚙️ Settings</h3>
-              <form onSubmit={handleUpdateProfile} className="flex-col gap-md">
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '6px' }}>Display Name</label>
-                  <input 
-                    type="text" 
-                    value={editName} 
-                    onChange={e => setEditName((e.target as any).value)} 
-                    style={{ width: '100%', background: 'var(--bg-tertiary)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '10px', color: 'var(--text-primary)', outline: 'none' }}
-                  />
-                </div>
-                <button type="submit" className="btn btn-primary w-full mt-sm" disabled={loading}>
-                  {loading ? <div className="loading-spinner" style={{ width: '20px', height: '20px', borderWidth: '2px' }} /> : 'Update Profile'}
-                </button>
-                {showUpdateSuccess && <p style={{ color: 'var(--success)', fontSize: '0.85rem', textAlign: 'center' }}>✅ Profile updated!</p>}
-              </form>
             </div>
 
             <div className="card">
@@ -214,8 +196,86 @@ export default function ProfilePage() {
                 </div>
               </div>
             </div>
+          </div>
 
-            <div className="flex-col gap-md">
+          {/* Right Column: Settings & Cognitive */}
+          <div className="flex-col gap-lg">
+            <div className="card">
+              <h3 className="mb-md">⚙️ Settings</h3>
+              <form onSubmit={handleUpdateProfile} className="flex-col gap-md">
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '6px' }}>Display Name</label>
+                  <input 
+                    type="text" 
+                    value={editName} 
+                    onChange={e => setEditName((e.target as any).value)} 
+                    style={{ width: '100%', background: 'var(--bg-tertiary)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '10px', color: 'var(--text-primary)', outline: 'none' }}
+                  />
+                </div>
+                <button type="submit" className="btn btn-primary w-full mt-sm" disabled={loading}>
+                  {loading ? <div className="loading-spinner" style={{ width: '20px', height: '20px', borderWidth: '2px' }} /> : 'Update Profile'}
+                </button>
+                {showUpdateSuccess && <p style={{ color: 'var(--success)', fontSize: '0.85rem', textAlign: 'center' }}>✅ Profile updated!</p>}
+              </form>
+            </div>
+
+            <div className="card">
+              <h3 className="mb-md">🧬 Detailed Cognitive Profile</h3>
+              {getLevelsCleared() > 0 ? (
+                (() => {
+                  const categoriesData = skillCategories.map(cat => ({
+                    ...cat,
+                    score: getCategoryScore(cat.key)
+                  }));
+                  // Prevent empty array reduce errors, though it shouldn't happen here
+                  const highestCategory = categoriesData.reduce((prev, current) => (prev.score > current.score) ? prev : current) || categoriesData[0];
+                  const lowestCategory = categoriesData.reduce((prev, current) => (prev.score < current.score) ? prev : current) || categoriesData[0];
+
+                  return (
+                    <div className="flex-col gap-md">
+                      <div style={{ background: 'var(--bg-tertiary)', padding: '16px', borderRadius: 'var(--radius-sm)' }}>
+                        <h4 style={{ color: 'var(--accent-primary)', marginBottom: '8px', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          1. Core Strength {highestCategory.icon}
+                        </h4>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.5 }}>
+                          Your primary cognitive dominance lies in <strong>{highestCategory.label}</strong>. You demonstrate exceptional aptitude in handling puzzles that require this skill, making it your foundational problem-solving tool.
+                        </p>
+                      </div>
+
+                      <div style={{ background: 'var(--bg-tertiary)', padding: '16px', borderRadius: 'var(--radius-sm)' }}>
+                        <h4 style={{ color: 'var(--accent-secondary)', marginBottom: '8px', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          2. Progress Insight 📈
+                        </h4>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.5 }}>
+                          {(() => {
+                            const cleared = getLevelsCleared();
+                            for (let i = cleared; i >= 1; i--) {
+                              if (personalityInsights[i]) return personalityInsights[i];
+                            }
+                            return "Keep playing to unlock your cognitive profile.";
+                          })()}
+                        </p>
+                      </div>
+
+                      <div style={{ background: 'var(--bg-tertiary)', padding: '16px', borderRadius: 'var(--radius-sm)' }}>
+                        <h4 style={{ color: 'var(--warning)', marginBottom: '8px', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          3. Growth Area {lowestCategory.icon}
+                        </h4>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.5 }}>
+                          To achieve a perfectly balanced mind, focus on improving your <strong>{lowestCategory.label}</strong>. Challenging yourself with these specific puzzles will yield the highest cognitive growth and brain plasticity.
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })()
+              ) : (
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.5 }}>
+                  Solve your first puzzle to begin your detailed cognitive analysis.
+                </p>
+              )}
+            </div>
+
+            <div className="flex-col gap-md" style={{ marginTop: 'auto' }}>
               <button className="btn btn-danger w-full" onClick={() => setShowReset(true)}>
                 🗑️ Reset All Progress
               </button>
@@ -240,6 +300,18 @@ export default function ProfilePage() {
           </div>
         )}
       </div>
+
+      {/* Right Ad Sidebar (Hidden on mobile/tablets) */}
+      <div className="ad-sidebar hidden-mobile" style={{ width: '160px', flexShrink: 0 }}>
+        <iframe 
+          src="/ad-160x600.html" 
+          width="160" 
+          height="600" 
+          frameBorder="0" 
+          scrolling="no" 
+        />
+      </div>
+
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { useGame } from '@/contexts/GameContext';
 import { getLevelById, levels } from '@/data/levels';
 import { useTimer } from '@/hooks/useGameHooks';
 import confetti from 'canvas-confetti';
+import GoogleAd from '@/components/GoogleAd';
 
 // Lazy-loaded puzzle components
 const puzzleComponents: Record<string, React.LazyExoticComponent<React.ComponentType<PuzzleComponentProps>>> = {
@@ -60,6 +61,57 @@ const puzzleComponents: Record<string, React.LazyExoticComponent<React.Component
   'sudoku-hard': lazy(() => import('@/components/puzzles/SudokuHard')),
   'hybrid-challenge': lazy(() => import('@/components/puzzles/HybridChallenge')),
   'final-challenge': lazy(() => import('@/components/puzzles/FinalChallenge')),
+
+  'flash-number-recall': lazy(() => import('@/components/puzzles/FlashNumberRecall')),
+  'moving-object-memory': lazy(() => import('@/components/puzzles/MovingObjectMemory')),
+  'sound-sequence-recall': lazy(() => import('@/components/puzzles/SoundSequenceRecall')),
+  'color-trail': lazy(() => import('@/components/puzzles/ColorTrail')),
+  'missing-shape': lazy(() => import('@/components/puzzles/MissingShape')),
+  'duplicate-symbol-hunt': lazy(() => import('@/components/puzzles/DuplicateSymbolHunt')),
+  'shadow-matching': lazy(() => import('@/components/puzzles/ShadowMatching')),
+  'memory-flip-advanced': lazy(() => import('@/components/puzzles/MemoryFlipAdvanced')),
+  'spot-movement': lazy(() => import('@/components/puzzles/SpotMovement')),
+  'pattern-flash-recall': lazy(() => import('@/components/puzzles/PatternFlashRecall')),
+  'water-jug-hard': lazy(() => import('@/components/puzzles/WaterJugHard')),
+  'bridge-crossing': lazy(() => import('@/components/puzzles/BridgeCrossing')),
+  'wolf-goat-cabbage': lazy(() => import('@/components/puzzles/WolfGoatCabbage')),
+  'chess-knight-path': lazy(() => import('@/components/puzzles/ChessKnightPath')),
+  'rotate-pipes': lazy(() => import('@/components/puzzles/RotatePipes')),
+  'traffic-jam': lazy(() => import('@/components/puzzles/TrafficJam')),
+  'laser-reflection': lazy(() => import('@/components/puzzles/LaserReflection')),
+  'tile-rotation-maze': lazy(() => import('@/components/puzzles/TileRotationMaze')),
+  'domino-chain': lazy(() => import('@/components/puzzles/DominoChain')),
+  'weight-balance-hard': lazy(() => import('@/components/puzzles/WeightBalanceHard')),
+  'magic-square': lazy(() => import('@/components/puzzles/MagicSquare')),
+  'equation-builder': lazy(() => import('@/components/puzzles/EquationBuilder')),
+  'number-pyramid': lazy(() => import('@/components/puzzles/NumberPyramid')),
+  'prime-number-filter': lazy(() => import('@/components/puzzles/PrimeNumberFilter')),
+  'sequence-advanced': lazy(() => import('@/components/puzzles/SequenceAdvanced')),
+  'fraction-puzzle': lazy(() => import('@/components/puzzles/FractionPizza')),
+  'time-calculation': lazy(() => import('@/components/puzzles/ClockAngle')),
+  'binary-conversion': lazy(() => import('@/components/puzzles/BinaryConversion')),
+  'sudoku-irregular': lazy(() => import('@/components/puzzles/SudokuMini')),
+  'multiplication-grid': lazy(() => import('@/components/puzzles/VennDiagramLogic')),
+  'tangram-animal': lazy(() => import('@/components/puzzles/ColorMixing')),
+  'mirror-symmetry': lazy(() => import('@/components/puzzles/ShadowRotation')),
+  'cube-rotation': lazy(() => import('@/components/puzzles/TangramAnimal')),
+  'perspective-puzzle': lazy(() => import('@/components/puzzles/SoundFrequencyMatch')),
+  'shape-folding': lazy(() => import('@/components/puzzles/Hidden3DShape')),
+  'optical-illusion': lazy(() => import('@/components/puzzles/ReflectionSymmetry')),
+  'perspective-maze': lazy(() => import('@/components/puzzles/PerspectiveShift')),
+  'build-structure': lazy(() => import('@/components/puzzles/OrigamiFold')),
+  'silhouette-guess': lazy(() => import('@/components/puzzles/ConstellationTrace')),
+  'negative-space': lazy(() => import('@/components/puzzles/AbstractPatternMatch')),
+  'countdown-focus': lazy(() => import('@/components/puzzles/FastClicker')),
+  'color-word-conflict': lazy(() => import('@/components/puzzles/FallingObjectsCatch')),
+  'multi-task-puzzle': lazy(() => import('@/components/puzzles/ColorStroopTest')),
+  'distraction-resistance': lazy(() => import('@/components/puzzles/AvoidTheBombs')),
+  'fast-sorting': lazy(() => import('@/components/puzzles/SimonSaysSpeed')),
+  'reaction-timing': lazy(() => import('@/components/puzzles/MemoryMatrixAdvanced')),
+  'focus-beam': lazy(() => import('@/components/puzzles/MathMarathon')),
+  'symbol-tracking': lazy(() => import('@/components/puzzles/LogicGridFinal')),
+  'hidden-rule': lazy(() => import('@/components/puzzles/StroopMathCombo')),
+  'final-combo-100': lazy(() => import('@/components/puzzles/UltimateChallenge')),
 };
 
 export interface PuzzleComponentProps {
@@ -80,7 +132,12 @@ export default function PlayPage() {
   const [stars, setStars] = useState(0);
   const [showHintModal, setShowHintModal] = useState(false);
   const [showAdModal, setShowAdModal] = useState(false);
-  const [adCountdown, setAdCountdown] = useState(5);
+  const [adCountdown, setAdCountdown] = useState(10);
+  const [showSkipAdModal, setShowSkipAdModal] = useState(false);
+  const [skipAdCountdown, setSkipAdCountdown] = useState(30);
+  const [showSkipCancelWarning, setShowSkipCancelWarning] = useState(false);
+  const [showHintCancelWarning, setShowHintCancelWarning] = useState(false);
+  const skipIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
   const [currentHint, setCurrentHint] = useState<string | null>(null);
   const [hintIndex, setHintIndex] = useState(0);
   const [hintsUsedThisLevel, setHintsUsedThisLevel] = useState(0);
@@ -106,9 +163,9 @@ export default function PlayPage() {
     return 1;
   }, [level, hintsUsedThisLevel]);
 
-  const handleComplete = useCallback(() => {
+  const handleComplete = useCallback((eOrStars?: number | any) => {
     timer.stop();
-    const earned = calculateStars(timer.seconds);
+    const earned = typeof eOrStars === 'number' ? eOrStars : calculateStars(timer.seconds);
     setStars(earned);
     setCompleted(true);
     dispatch({
@@ -134,20 +191,68 @@ export default function PlayPage() {
     setShowHintModal(false);
   };
 
+  const adIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
+
   const handleWatchAd = () => {
     setShowAdModal(true);
-    setAdCountdown(5);
-    const interval = setInterval(() => {
-      setAdCountdown(prev => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          dispatch({ type: 'ADD_HINT' });
-          setShowAdModal(false);
-          return 0;
-        }
-        return prev - 1;
-      });
+    setAdCountdown(10);
+    let currentCount = 10;
+    
+    adIntervalRef.current = setInterval(() => {
+      currentCount -= 1;
+      setAdCountdown(currentCount);
+      
+      if (currentCount <= 0) {
+        if (adIntervalRef.current) clearInterval(adIntervalRef.current);
+        dispatch({ type: 'ADD_HINT' });
+        setShowAdModal(false);
+      }
     }, 1000);
+  };
+
+  const handleSkipLevel = () => {
+    setShowSkipAdModal(true);
+    setSkipAdCountdown(30);
+    let currentCount = 30;
+    
+    skipIntervalRef.current = setInterval(() => {
+      currentCount -= 1;
+      setSkipAdCountdown(currentCount);
+      
+      if (currentCount <= 0) {
+        if (skipIntervalRef.current) clearInterval(skipIntervalRef.current);
+        setShowSkipAdModal(false);
+        handleComplete(0);
+      }
+    }, 1000);
+  };
+
+  const cancelSkipAd = () => {
+    setShowSkipCancelWarning(true);
+  };
+
+  const confirmCancelSkipAd = () => {
+    if (skipIntervalRef.current) clearInterval(skipIntervalRef.current);
+    setShowSkipCancelWarning(false);
+    setShowSkipAdModal(false);
+  };
+
+  const declineCancelSkipAd = () => {
+    setShowSkipCancelWarning(false);
+  };
+
+  const cancelHintAd = () => {
+    setShowHintCancelWarning(true);
+  };
+
+  const confirmCancelHintAd = () => {
+    if (adIntervalRef.current) clearInterval(adIntervalRef.current);
+    setShowHintCancelWarning(false);
+    setShowAdModal(false);
+  };
+
+  const declineCancelHintAd = () => {
+    setShowHintCancelWarning(false);
   };
 
   const handleReset = () => {
@@ -155,29 +260,40 @@ export default function PlayPage() {
     timer.start();
     setCompleted(false);
     setStars(0);
-    setCurrentHint(null);
-    setHintIndex(0);
-    setHintsUsedThisLevel(0);
-    setShownHints([]);
+    // Intentionally NOT clearing hints here! If a user unlocks a hint, 
+    // it should persist even if they reset the puzzle to try again.
     setResetKey(prev => prev + 1);
   };
 
   const handleShare = async () => {
-    const text = `🧠 Mind Odyssey - Level ${levelId}: ${level?.name}\n${'⭐'.repeat(stars)} in ${timer.format(timer.seconds)}\nCan you beat my score?`;
+    const text = `🧠 Mind Odyssey - Level ${levelId}: ${level?.name}\n${'⭐'.repeat(stars || 0)} in ${timer.format(timer.seconds)}\nCan you beat my score?`;
     const nav = (globalThis as any).navigator;
     
-    if (nav && nav.share) {
-      try { await nav.share({ title: 'Mind Odyssey', text }); } catch {}
-    } else if (nav && nav.clipboard) {
-      await nav.clipboard.writeText(text);
-      (globalThis as any).alert('Result copied to clipboard!');
+    try {
+      if (nav && nav.share && (globalThis as any).isSecureContext) {
+        await nav.share({ title: 'Mind Odyssey', text });
+      } else if (nav && nav.clipboard && (globalThis as any).isSecureContext) {
+        await nav.clipboard.writeText(text);
+        (globalThis as any).alert('Result copied to clipboard!');
+      } else {
+        // Fallback for non-secure contexts (e.g. testing on LAN without HTTPS)
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        (globalThis as any).alert('Result copied to clipboard!');
+      }
+    } catch (err) {
+      console.error('Share failed:', err);
     }
   };
 
   if (!level) return null;
 
   const PuzzleComponent = puzzleComponents[level.puzzleKey];
-  const hasNextLevel = levelId < 50;
+  const hasNextLevel = levelId < 100;
   const categoryIcon = level.category === 'logic' ? '🧠' : level.category === 'memory' ? '🎯' : level.category === 'creativity' ? '🎨' : '🏆';
 
   return (
@@ -208,12 +324,17 @@ export default function PlayPage() {
 
         {/* Active Hints */}
         {shownHints.length > 0 && (
-          <div style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 'var(--radius-md)', padding: '10px 14px' }}>
-            {shownHints.map((h, i) => (
-              <p key={i} style={{ color: 'var(--warning)', fontSize: '0.85rem', marginBottom: i < shownHints.length - 1 ? '4px' : 0 }}>
-                💡 Hint {i + 1}: {h}
-              </p>
-            ))}
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--warning)', borderRadius: 'var(--radius-md)', padding: '16px', boxShadow: '0 4px 12px rgba(245, 158, 11, 0.15)' }}>
+            <h4 style={{ color: 'var(--warning)', marginBottom: '8px', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>💡</span> Unlocked Hints
+            </h4>
+            <div className="flex-col gap-sm">
+              {shownHints.map((h, i) => (
+                <div key={i} style={{ color: 'var(--text-primary)', fontSize: '0.95rem', lineHeight: 1.5 }}>
+                  <strong style={{ color: 'var(--warning)' }}>Hint {i + 1}:</strong> {h}
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -229,14 +350,19 @@ export default function PlayPage() {
       {/* Bottom Bar */}
       {!completed && (
         <div className="flex-col">
-          {/* Adsterra Footer Banner Placeholder */}
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0', background: 'rgba(0,0,0,0.02)', borderTop: '1px solid var(--border)' }}>
-            <div style={{ width: '320px', height: '50px', background: 'rgba(0,0,0,0.05)', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-              ADSTERRA BANNER (320x50)
-            </div>
+          {/* Gameplay Footer Ad */}
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0', background: 'rgba(0,0,0,0.02)', borderTop: '1px solid var(--border)', overflow: 'hidden' }}>
+            <iframe 
+              src="/ad-728.html" 
+              width="728" 
+              height="90" 
+              frameBorder="0" 
+              scrolling="no" 
+              style={{ maxWidth: '100%' }}
+            />
           </div>
           <div className="bottom-bar">
-            <button className="btn btn-secondary btn-sm" onClick={() => setShowHintModal(true)} disabled={state.hintsRemaining <= 0}>
+            <button className="btn btn-secondary btn-sm" onClick={() => setShowHintModal(true)} disabled={hintIndex >= level.hints.length}>
               💡 Hint ({state.hintsRemaining})
             </button>
             <button className="btn btn-secondary btn-sm" onClick={handleWatchAd}>
@@ -244,6 +370,9 @@ export default function PlayPage() {
             </button>
             <button className="btn btn-ghost btn-sm" onClick={handleReset}>
               🔄 Reset
+            </button>
+            <button className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)' }} onClick={handleSkipLevel}>
+              ⏭️ Skip
             </button>
           </div>
         </div>
@@ -255,14 +384,20 @@ export default function PlayPage() {
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>💡</div>
             <h3 className="mb-sm">Need a Hint?</h3>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}>
-              This hint costs 1 point. You have {state.hintsRemaining} remaining.
-            </p>
+            {hintIndex >= level.hints.length ? (
+              <p style={{ color: 'var(--success)', marginBottom: '20px' }}>
+                You have already unlocked all available hints for this level!
+              </p>
+            ) : (
+              <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}>
+                This hint costs 1 point. You have {state.hintsRemaining} remaining.
+              </p>
+            )}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <button className="btn btn-primary" onClick={handleUseHint} disabled={state.hintsRemaining <= 0 || hintIndex >= level.hints.length}>
                 Use Hint (-1💡)
               </button>
-              <button className="btn btn-secondary" onClick={() => { setShowHintModal(false); handleWatchAd(); }}>
+              <button className="btn btn-secondary" onClick={() => { setShowHintModal(false); handleWatchAd(); }} disabled={hintIndex >= level.hints.length}>
                 Watch Ad (+1💡)
               </button>
               <button className="btn btn-ghost" onClick={() => setShowHintModal(false)}>Cancel</button>
@@ -274,13 +409,23 @@ export default function PlayPage() {
       {/* ─── Ad Modal ─── */}
       {showAdModal && (
         <div className="modal-overlay">
-          <div className="modal-content" style={{ padding: 0, overflow: 'hidden', position: 'relative', maxWidth: '300px' }}>
-            {/* Ad Container */}
-            <div style={{ width: '300px', height: '250px', background: 'rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '20px' }}>
-              <div className="flex-col gap-sm">
-                <div style={{ fontSize: '2rem' }}>📺</div>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Adsterra Ad Displaying...</p>
-              </div>
+          <div className="modal-content skip-ad-modal">
+            <div style={{ position: 'absolute', top: '16px', left: '16px', zIndex: 20 }}>
+               <button className="btn btn-ghost btn-sm" onClick={cancelHintAd} style={{ background: 'rgba(0,0,0,0.5)', color: 'white', padding: '6px 12px', fontSize: '0.85rem' }}>✕ Close</button>
+            </div>
+            
+            <div className="ad-wrapper">
+              <iframe 
+                src="/ad-300.html"
+                width="300" 
+                height="250" 
+                frameBorder="0" 
+                scrolling="no" 
+                style={{ maxWidth: '100%' }}
+              />
+              <p style={{ marginTop: '16px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                Reward in {adCountdown}s...
+              </p>
             </div>
 
             {/* Top Right Countdown Overlay */}
@@ -299,7 +444,7 @@ export default function PlayPage() {
               justifyContent: 'center',
               fontWeight: 800,
               fontSize: '1rem',
-              border: '2px solid var(--accent-primary)',
+              border: '2px solid var(--accent-secondary)',
               boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
               zIndex: 10
             }}>
@@ -308,7 +453,101 @@ export default function PlayPage() {
 
             {/* Reward Progress Bar (Optional, thin at bottom) */}
             <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '4px', background: 'rgba(255,255,255,0.1)' }}>
-              <div style={{ height: '100%', background: 'var(--accent-primary)', width: `${((5 - adCountdown) / 5) * 100}%`, transition: 'width 1s linear' }} />
+              <div style={{ height: '100%', background: 'var(--accent-secondary)', width: `${((10 - adCountdown) / 10) * 100}%`, transition: 'width 1s linear' }} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Skip Level Ad Modal ─── */}
+      {showSkipAdModal && (
+        <div className="modal-overlay">
+          <div className="modal-content skip-ad-modal">
+            <div style={{ position: 'absolute', top: '16px', left: '16px', zIndex: 20 }}>
+               <button className="btn btn-ghost btn-sm" onClick={cancelSkipAd} style={{ background: 'rgba(0,0,0,0.5)', color: 'white', padding: '6px 12px', fontSize: '0.85rem' }}>✕ Close</button>
+            </div>
+            
+            <div className="ad-wrapper">
+              <iframe 
+                src="https://www.effectivecpmnetwork.com/edfkn8z1?key=c3a2e6d1b6a2fabb7ba0f90467651f8b"
+                width="250" 
+                height="250" 
+                frameBorder="0" 
+                scrolling="no" 
+              />
+              <p style={{ marginTop: '16px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                Skipping level in {skipAdCountdown}s...
+              </p>
+            </div>
+
+            {/* Top Right Countdown Overlay */}
+            <div style={{ 
+              position: 'absolute', 
+              top: '12px', 
+              right: '12px', 
+              background: 'rgba(0,0,0,0.7)', 
+              backdropFilter: 'blur(4px)',
+              color: 'white', 
+              borderRadius: '50%', 
+              width: '38px', 
+              height: '38px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              fontWeight: 800,
+              fontSize: '1rem',
+              border: '2px solid var(--danger)',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+              zIndex: 10
+            }}>
+              {skipAdCountdown}
+            </div>
+
+            {/* Reward Progress Bar */}
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '4px', background: 'rgba(255,255,255,0.1)' }}>
+              <div style={{ height: '100%', background: 'var(--danger)', width: `${((30 - skipAdCountdown) / 30) * 100}%`, transition: 'width 1s linear' }} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Skip Ad Cancel Warning Modal ─── */}
+      {showSkipCancelWarning && (
+        <div className="modal-overlay" style={{ zIndex: 150 }}>
+          <div className="modal-content" style={{ maxWidth: '280px', padding: '16px' }}>
+            <div style={{ fontSize: '2rem', marginBottom: '8px', lineHeight: 1 }}>⚠️</div>
+            <h3 style={{ marginBottom: '8px', fontSize: '1.2rem' }}>Cancel Skip?</h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginBottom: '16px', lineHeight: 1.4 }}>
+              Are you sure? You will not skip the level if you cancel.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <button className="btn btn-secondary btn-sm w-full" onClick={declineCancelSkipAd}>
+                Keep Watching
+              </button>
+              <button className="btn btn-danger btn-sm w-full" onClick={confirmCancelSkipAd}>
+                Yes, Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Hint Ad Cancel Warning Modal ─── */}
+      {showHintCancelWarning && (
+        <div className="modal-overlay" style={{ zIndex: 150 }}>
+          <div className="modal-content" style={{ maxWidth: '280px', padding: '16px' }}>
+            <div style={{ fontSize: '2rem', marginBottom: '8px', lineHeight: 1 }}>⚠️</div>
+            <h3 style={{ marginBottom: '8px', fontSize: '1.2rem' }}>Cancel Ad?</h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginBottom: '16px', lineHeight: 1.4 }}>
+              Are you sure? You will not receive a hint if you cancel.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <button className="btn btn-secondary btn-sm w-full" onClick={declineCancelHintAd}>
+                Keep Watching
+              </button>
+              <button className="btn btn-danger btn-sm w-full" onClick={confirmCancelHintAd}>
+                Yes, Cancel
+              </button>
             </div>
           </div>
         </div>
@@ -317,11 +556,11 @@ export default function PlayPage() {
       {/* ─── Level Complete Modal ─── */}
       {completed && (
         <div className="modal-overlay">
-          <div className="modal-content">
-            <div style={{ fontSize: '3rem', marginBottom: '8px', animation: 'starPop 0.5s ease' }}>🎉</div>
-            <h2 className="mb-sm"><span className="gradient-text">Level Complete!</span></h2>
+          <div className="modal-content" style={{ padding: '16px' }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: '4px', animation: 'starPop 0.5s ease', lineHeight: 1 }}>🎉</div>
+            <h2 className="mb-sm" style={{ fontSize: '1.5rem', margin: '4px 0' }}><span className="gradient-text">Level Complete!</span></h2>
 
-            <div style={{ fontSize: '2rem', margin: '12px 0' }}>
+            <div style={{ fontSize: '1.75rem', margin: '8px 0' }}>
               {[1, 2, 3].map(i => (
                 <span key={i} className={`star ${i <= stars ? 'filled animate' : 'empty'}`}
                   style={{ animationDelay: `${i * 0.2}s`, fontSize: '2rem' }}>
@@ -330,17 +569,17 @@ export default function PlayPage() {
               ))}
             </div>
 
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '4px' }}>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '4px' }}>
               ⏱️ Time: {timer.format(timer.seconds)} · 💡 Hints Used: {hintsUsedThisLevel}
             </p>
 
             {/* Personality Insight */}
             <div style={{
               background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.3)',
-              borderRadius: 'var(--radius-md)', padding: '14px', margin: '16px 0',
+              borderRadius: 'var(--radius-md)', padding: '10px', margin: '10px 0',
               textAlign: 'left',
             }}>
-              <p style={{ fontSize: '0.75rem', color: 'var(--accent-primary)', fontWeight: 600, marginBottom: '6px' }}>
+              <p style={{ fontSize: '0.7rem', color: 'var(--accent-primary)', fontWeight: 600, marginBottom: '4px' }}>
                 🧬 PERSONALITY INSIGHT
               </p>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: 1.5 }}>
@@ -348,14 +587,18 @@ export default function PlayPage() {
               </p>
             </div>
 
-            {/* Level Complete Adsterra Banner (Rectangular like a button) */}
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
-              <div style={{ width: '100%', maxWidth: '320px', height: '50px', background: 'rgba(0,0,0,0.05)', borderRadius: 'var(--radius-sm)', border: '1px dashed var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                ADSTERRA BANNER (320x50)
-              </div>
+            {/* Level Complete Third Party Ad Banner */}
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
+              <iframe 
+                src="/ad-320.html" 
+                width="320" 
+                height="50" 
+                frameBorder="0" 
+                scrolling="no" 
+              />
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {hasNextLevel && (
                 <button className="btn btn-primary w-full" onClick={() => router.push(`/play/${levelId + 1}`)}>
                   Next Level →

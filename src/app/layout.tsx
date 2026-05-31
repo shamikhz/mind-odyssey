@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { GameProvider } from "@/contexts/GameContext";
+
 import Script from "next/script";
 
 export const viewport = {
@@ -12,7 +13,7 @@ export const viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Mind Odyssey – 50 Levels of Brain Growth",
+  title: "Mind Odyssey",
   description: "A progressive puzzle game with 50 unique levels that enhance logic, memory, creativity, and strategic thinking. Challenge your mind and discover personality insights!",
   keywords: ["puzzle game", "brain training", "logic puzzles", "memory game", "personality"],
   manifest: "/manifest.json",
@@ -32,7 +33,17 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <GameProvider>{children}</GameProvider>
-        <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
+        <Script 
+          src="https://checkout.razorpay.com/v1/checkout.js" 
+          strategy="lazyOnload" 
+        />
+        {/* Google AdSense Script */}
+        <Script
+          async
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT_ID || 'ca-pub-XXXXXXXXXXXXXX'}`}
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
         <script dangerouslySetInnerHTML={{ __html: `
           if ('serviceWorker' in (globalThis as any).navigator) {
             window.addEventListener('load', function() {

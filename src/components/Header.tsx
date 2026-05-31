@@ -36,76 +36,51 @@ export default function Header() {
     setError(null);
 
     try {
-      // Try to sign in first
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
       });
 
-      if (signInData.user) {
-        dispatch({
-          type: 'LOGIN',
-          user: {
-            id: signInData.user.id,
-            name: signInData.user.user_metadata?.full_name || signInData.user.email?.split('@')[0] || 'Player One',
-            email: signInData.user.email || ''
-          }
-        });
+      if (!signInError && data?.user) {
         setShowAuthModal(false);
         router.push('/');
         setFormData({ name: '', email: '', password: '' });
         return;
       }
 
-      // If sign in failed, try to sign up (the user might not exist)
-      if (signInError) {
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email: formData.email,
-          password: formData.password,
-          options: {
-            data: {
-              full_name: formData.name || formData.email.split('@')[0],
-            }
-          }
-        });
-
-        if (signUpError) {
-          // If sign up fails with "User already registered", it means the password was wrong for the existing user
-          if (signUpError.message === 'User already registered') {
-            throw new Error('Invalid email or password');
-          }
-          throw signUpError;
+      // If sign in failed, try to sign up
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: { name: formData.name },
         }
+      });
 
-        if (signUpData.user) {
-          dispatch({
-            type: 'LOGIN',
-            user: {
-              id: signUpData.user.id,
-              name: formData.name || signUpData.user.email?.split('@')[0] || 'Explorer',
-              email: signUpData.user.email || ''
-            }
-          });
-          setShowAuthModal(false);
-          router.push('/');
-          setFormData({ name: '', email: '', password: '' });
-        }
+      if (signUpError) {
+        // If it's still an error, show it (e.g., wrong password, invalid email)
+        // If user already registered, Supabase might throw user already exists.
+        throw new Error(signUpError.message || signInError?.message || 'Failed to authenticate');
       }
-    } catch (err: unknown) {
-      if (err instanceof Error) setError(err.message); else setError('An unknown error occurred');
+
+      if (signUpData?.user) {
+        setShowAuthModal(false);
+        router.push('/');
+        setFormData({ name: '', email: '', password: '' });
+      }
+
+    } catch (err: any) {
+      setError(err.message || 'An unknown error occurred');
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleLogin = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
+    await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: {
-        redirectTo: (globalThis as any).location?.origin || ''
-      }
+      options: { redirectTo: window.location.origin }
     });
-    if (error) setError(error.message);
   };
 
   const handleLogout = async (e?: React.MouseEvent) => {
@@ -114,17 +89,9 @@ export default function Header() {
       await supabase.auth.signOut();
       dispatch({ type: 'LOGOUT' });
       setShowDropdown(false);
-      // Force a full page reload to clear all memory state
-      if (typeof window !== 'undefined') {
-        window.location.reload();
-      }
     } catch (err) {
       console.error('Logout error:', err);
-      // Fallback if signOut fails
       dispatch({ type: 'LOGOUT' });
-      if (typeof window !== 'undefined') {
-        window.location.reload();
-      }
     }
   };
 
@@ -151,9 +118,8 @@ export default function Header() {
         order_id: order.id,
         handler: async function (response: RazorpayResponse) {
           try {
-            // Record payment in Supabase
             if (state.user.id) {
-              await supabase.from('payments').insert({
+              const { error: dbError } = await supabase.from('payments').insert({
                 user_id: state.user.id,
                 order_id: order.id,
                 payment_id: response.razorpay_payment_id,
@@ -161,6 +127,13 @@ export default function Header() {
                 hint_count: count,
                 status: 'captured'
               });
+              if (dbError) throw dbError;
+
+              // Fetch current hints and add
+              const { data: profile } = await supabase.from('profiles').select('hintsRemaining').eq('id', state.user.id).single();
+              if (profile) {
+                await supabase.from('profiles').update({ hintsRemaining: (profile.hintsRemaining || 0) + count }).eq('id', state.user.id);
+              }
             }
             
             // Success!

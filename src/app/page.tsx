@@ -87,10 +87,15 @@ export default function LandingPage() {
         </p>
 
         {/* Adsterra Homepage Banner (728x90) */}
-        <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginTop: '10px', paddingBottom: '20px' }}>
-          <div style={{ width: '100%', maxWidth: '728px', height: '90px', background: 'rgba(0,0,0,0.05)', borderRadius: 'var(--radius-sm)', border: '1px dashed var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-            ADSTERRA BANNER (728x90)
-          </div>
+        <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginTop: '10px', paddingBottom: '20px', overflow: 'hidden' }}>
+          <iframe 
+            src="/ad-728.html" 
+            width="728" 
+            height="90" 
+            frameBorder="0" 
+            scrolling="no" 
+            style={{ maxWidth: '100%' }}
+          />
         </div>
       </div>
 

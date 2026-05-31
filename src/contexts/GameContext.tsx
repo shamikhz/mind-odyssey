@@ -3,6 +3,8 @@
 import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import { GameState, GameAction } from '@/types/game';
 
+import { supabase } from '@/lib/supabase';
+
 const STORAGE_KEY = 'mind-odyssey-state';
 
 const initialState: GameState = {
@@ -117,10 +119,7 @@ interface GameContextType {
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
-import { supabase } from '@/lib/supabase';
-
 export function GameProvider({ children }: { children: React.ReactNode }) {
-
   const [loaded, setLoaded] = React.useState(false);
   const [showAuthModal, setShowAuthModal] = React.useState(false);
 
@@ -140,57 +139,74 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const [state, dispatch] = useReducer(gameReducer, initialState, initState);
 
-  // Sync with Supabase Auth (no state loading here)
-  useEffect(() => {
-    const syncAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-        dispatch({
-          type: 'LOGIN',
-          user: {
-            id: session.user.id,
-            name: profile?.full_name || session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Player',
-            email: session.user.email || '',
-            avatar: profile?.avatar || ''
-          }
-        });
-      } else {
-        dispatch({ type: 'LOGOUT' });
-      }
-    };
-    syncAuth();
+  const [session, setSession] = React.useState<any>(null);
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-        dispatch({
-          type: 'LOGIN',
-          user: {
-            id: session.user.id,
-            name: profile?.full_name || session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Player',
-            email: session.user.email || '',
-            avatar: profile?.avatar || ''
-          }
-        });
-      } else {
-        dispatch({ type: 'LOGOUT' });
-      }
+  // Sync with Supabase Auth
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
     });
 
-    setLoaded(true);
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
     return () => subscription.unsubscribe();
   }, []);
 
+  // Sync Profile from Supabase DB
+  useEffect(() => {
+    const syncProfile = async () => {
+      if (session?.user) {
+        try {
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          if (!error && profile) {
+            dispatch({
+              type: 'LOGIN',
+              user: {
+                id: session.user.id,
+                name: profile.name || session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Player',
+                email: session.user.email || '',
+                avatar: profile.avatar || session.user.user_metadata?.avatar_url || ''
+              }
+            });
+            // If they have remote progress, you can sync it here
+          } else {
+             // Fallback to session metadata if profile doesn't exist yet
+             dispatch({
+              type: 'LOGIN',
+              user: {
+                id: session.user.id,
+                name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Player',
+                email: session.user.email || '',
+                avatar: session.user.user_metadata?.avatar_url || ''
+              }
+            });
+          }
+        } catch (error) {
+          console.error('Failed to sync profile', error);
+        }
+      } else {
+        dispatch({ type: 'LOGOUT' });
+      }
+      setLoaded(true);
+    };
+    
+    syncProfile();
+  }, [session]);
+
   // Persist state on every change
+  const syncTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
     if (loaded) {
       try {
@@ -199,8 +215,23 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       } catch {
         // Ignore storage errors
       }
+
+      // Sync progress to Supabase DB if logged in, debounced to prevent spam
+      if (session?.user && state.user.id) {
+        if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+        syncTimeoutRef.current = setTimeout(() => {
+          supabase.from('profiles').update({
+            progress: state.progress,
+            currentLevel: state.currentLevel,
+            totalTimePlayed: state.totalTimePlayed,
+            hintsRemaining: state.hintsRemaining
+          }).eq('id', state.user.id).then(({ error }) => {
+            if (error) console.error('Error syncing progress:', error);
+          });
+        }, 2000); // 2 second debounce
+      }
     }
-  }, [state, loaded]);
+  }, [state, loaded, session]);
 
   const getStarsForLevel = useCallback(
     (levelId: number) => state.progress[levelId]?.stars ?? 0,
