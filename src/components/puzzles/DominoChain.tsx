@@ -96,7 +96,7 @@ export default function DominoChain({ onComplete }: Props) {
               boxShadow: selectedId === d.id ? '0 0 0 4px var(--accent-primary)' : '0 4px 6px rgba(0,0,0,0.3)',
               cursor: 'pointer',
               overflow: 'hidden'
-            }}
+            } as any}
           >
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '2px solid black' }}>
               {renderDots(d.top)}

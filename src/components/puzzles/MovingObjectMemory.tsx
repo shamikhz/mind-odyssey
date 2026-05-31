@@ -170,7 +170,7 @@ export default function MovingObjectMemory({ onComplete, difficulty = 1 }: Props
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '2rem',
               pointerEvents: 'none'
-            }}
+            } as any}
           >
             {obj.icon}
           </motion.div>

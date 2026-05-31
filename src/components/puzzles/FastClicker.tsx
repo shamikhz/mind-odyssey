@@ -76,7 +76,7 @@ export default function FastClicker({ onComplete }: Props) {
                 boxShadow: '0 10px 25px rgba(124, 58, 237, 0.5)',
                 fontSize: '2rem', color: 'white', fontWeight: 'bold',
                 userSelect: 'none'
-              }}
+              } as any}
             >
               TAP!
             </motion.button>

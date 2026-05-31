@@ -141,7 +141,7 @@ export default function TrafficJam({ onComplete }: Props) {
                 cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 zIndex: 10
-              }}
+              } as any}
             >
               {c.isRed && <span style={{ fontSize: '1.5rem' }}>🚗</span>}
               {!c.isRed && <span style={{ fontSize: '1.5rem' }}>🚙</span>}

@@ -1,19 +1,35 @@
 'use client';
 import React, { useState } from 'react';
-import { useAudio } from '@/hooks/useAudio';
 
 interface Props { onComplete: () => void; difficulty?: number; }
 
 export default function SoundFrequencyMatch({ onComplete }: Props) {
   const targetFreq = 440; // A4
-  const { play } = useAudio();
   const [userFreq, setUserFreq] = useState(300);
   const [error, setError] = useState(false);
+
+  const playFreq = (freq: number, type: OscillatorType = 'sine', durationSec: number = 1) => {
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      gain.gain.setValueAtTime(1, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + durationSec);
+      osc.stop(ctx.currentTime + durationSec);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const handleSubmit = () => {
     // Give a small tolerance of +/- 5Hz
     if (Math.abs(userFreq - targetFreq) <= 5) {
-      play(targetFreq, 'sine', 0.5); // Success chime
+      playFreq(targetFreq, 'sine', 0.5); // Success chime
       setTimeout(onComplete, 800);
     } else {
       setError(true);
@@ -36,7 +52,7 @@ export default function SoundFrequencyMatch({ onComplete }: Props) {
           <button 
             className="btn btn-secondary"
             style={{ fontSize: '1.2rem', padding: '16px 32px', borderRadius: '32px' }}
-            onClick={() => play(targetFreq, 'sine', 1)}
+            onClick={() => playFreq(targetFreq, 'sine', 1)}
           >
             🎵 Play Target Tone
           </button>
@@ -46,7 +62,7 @@ export default function SoundFrequencyMatch({ onComplete }: Props) {
           <button 
             className="btn btn-primary"
             style={{ fontSize: '1.2rem', padding: '16px 32px', borderRadius: '32px' }}
-            onClick={() => play(userFreq, 'sine', 1)}
+            onClick={() => playFreq(userFreq, 'sine', 1)}
           >
             🔊 Play Your Tone
           </button>

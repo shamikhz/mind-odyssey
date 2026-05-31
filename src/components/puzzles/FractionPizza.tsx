@@ -59,7 +59,7 @@ export default function FractionPizza({ onComplete }: Props) {
                   fontSize: '3rem',
                   background: 'none', border: 'none', cursor: 'pointer',
                   filter: isSelected ? 'drop-shadow(0 0 10px rgba(255,200,0,0.8))' : 'grayscale(100%) opacity(0.3)'
-                }}
+                } as any}
               >
                 🍕
               </motion.button>

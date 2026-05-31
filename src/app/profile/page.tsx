@@ -47,7 +47,7 @@ export default function ProfilePage() {
           currentLevel: 1,
           hintsRemaining: 10
         }).eq('id', state.user.id);
-        
+
         if (error) console.error('Supabase error on reset:', error);
       }
     } catch (err: any) {
@@ -62,7 +62,7 @@ export default function ProfilePage() {
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!state.user.id) return;
-    
+
     setLoading(true);
     try {
       // 1. Update DB via Supabase
@@ -105,15 +105,15 @@ export default function ProfilePage() {
 
   return (
     <div className="page" style={{ paddingTop: '80px', display: 'flex', justifyContent: 'center', gap: '24px', maxWidth: '100vw', overflowX: 'hidden' }}>
-      
+
       {/* Left Ad Sidebar (Hidden on mobile/tablets) */}
       <div className="ad-sidebar hidden-mobile" style={{ width: '160px', flexShrink: 0 }}>
-        <iframe 
-          src="/ad-160x600.html" 
-          width="160" 
-          height="600" 
-          frameBorder="0" 
-          scrolling="no" 
+        <iframe
+          src="/ad-160x600.html"
+          width="160"
+          height="600"
+          frameBorder="0"
+          scrolling="no"
         />
       </div>
 
@@ -121,16 +121,16 @@ export default function ProfilePage() {
         <Link href="/" className="btn btn-ghost btn-sm mb-md" style={{ display: 'inline-flex' }}>← Back</Link>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-          
+
           {/* Left Column: Stats */}
           <div className="flex-col gap-lg">
             <div className="card text-center" style={{ padding: '32px' }}>
-              <div 
+              <div
                 onClick={() => (fileInputRef.current as any)?.click()}
-                style={{ 
-                  width: '100px', height: '100px', borderRadius: '50%', 
-                  background: 'var(--accent-gradient)', margin: '0 auto 16px', 
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                style={{
+                  width: '100px', height: '100px', borderRadius: '50%',
+                  background: 'var(--accent-gradient)', margin: '0 auto 16px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '2.5rem', fontWeight: 800, color: 'white',
                   cursor: 'pointer', overflow: 'hidden', position: 'relative',
                   border: '4px solid var(--bg-tertiary)',
@@ -146,12 +146,12 @@ export default function ProfilePage() {
                   Change
                 </div>
               </div>
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                onChange={handleImageChange} 
-                accept="image/*" 
-                style={{ display: 'none' }} 
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleImageChange}
+                accept="image/*"
+                style={{ display: 'none' }}
               />
               <h2><span className="gradient-text">{state.playerName}</span></h2>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{state.user.email || 'Adventurer'}</p>
@@ -205,10 +205,10 @@ export default function ProfilePage() {
               <form onSubmit={handleUpdateProfile} className="flex-col gap-md">
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '6px' }}>Display Name</label>
-                  <input 
-                    type="text" 
-                    value={editName} 
-                    onChange={e => setEditName((e.target as any).value)} 
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={e => setEditName((e.target as any).value)}
                     style={{ width: '100%', background: 'var(--bg-tertiary)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '10px', color: 'var(--text-primary)', outline: 'none' }}
                   />
                 </div>
@@ -303,12 +303,12 @@ export default function ProfilePage() {
 
       {/* Right Ad Sidebar (Hidden on mobile/tablets) */}
       <div className="ad-sidebar hidden-mobile" style={{ width: '160px', flexShrink: 0 }}>
-        <iframe 
-          src="/ad-160x600.html" 
-          width="160" 
-          height="600" 
-          frameBorder="0" 
-          scrolling="no" 
+        <iframe
+          src="/ad-160x600.html"
+          width="160"
+          height="600"
+          frameBorder="0"
+          scrolling="no"
         />
       </div>
 

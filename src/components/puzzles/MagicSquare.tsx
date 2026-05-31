@@ -87,7 +87,7 @@ export default function MagicSquare({ onComplete }: Props) {
               cursor: 'pointer',
               color: 'var(--text-primary)',
               boxShadow: selectedIdx === idx ? '0 0 15px var(--accent-primary)' : 'none'
-            }}
+            } as any}
           >
             {num}
           </motion.button>

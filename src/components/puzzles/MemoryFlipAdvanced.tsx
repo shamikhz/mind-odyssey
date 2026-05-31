@@ -138,7 +138,7 @@ export default function MemoryFlipAdvanced({ onComplete, difficulty = 1 }: Props
                 opacity: card.isMatched ? 0.3 : 1,
                 perspective: '1000px',
                 transformStyle: 'preserve-3d'
-              }}
+              } as any}
             >
               <span style={{ 
                 fontSize: '2rem', 
