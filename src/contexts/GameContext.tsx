@@ -339,6 +339,29 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 export function useGame() {
   const context = useContext(GameContext);
   if (!context) {
+    if (typeof window === 'undefined') {
+      // Bulletproof fallback for Next.js SSR prerendering edge cases (like _not-found)
+      return {
+        state: {
+          currentLevel: 1,
+          hintsRemaining: 10,
+          progress: {},
+          totalTimePlayed: 0,
+          playerName: 'Player',
+          user: { id: '', name: '', email: '', avatar: '', isLoggedIn: false },
+          adsRemoved: false,
+        },
+        dispatch: () => {},
+        getStarsForLevel: () => 0,
+        isLevelUnlocked: () => true,
+        isLevelCompleted: () => false,
+        getTotalStars: () => 0,
+        getLevelsCleared: () => 0,
+        getCategoryScore: () => 0,
+        showAuthModal: false,
+        setShowAuthModal: () => {},
+      } as unknown as GameContextType;
+    }
     throw new Error('useGame must be used within a GameProvider');
   }
   return context;
