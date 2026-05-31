@@ -12,7 +12,6 @@ export default function LandingPage() {
   const { state, dispatch, getLevelsCleared, getTotalStars, setShowAuthModal } = useGame();
   const router = useRouter();
   const hasProgress = getLevelsCleared() > 0;
-  const [showComingSoon, setShowComingSoon] = React.useState(false);
 
   const handleProtectedAction = (e: React.MouseEvent, target: string) => {
     e.preventDefault();
@@ -70,15 +69,6 @@ export default function LandingPage() {
           <button onClick={(e) => handleProtectedAction(e, '/levels')} className="btn btn-secondary w-full">
             📊 All Levels
           </button>
-          <button onClick={(e) => {
-            if (!state.user.isLoggedIn) {
-              setShowAuthModal(true);
-            } else {
-              setShowComingSoon(true);
-            }
-          }} className="btn btn-ghost w-full">
-            🏆 Global Leaderboard
-          </button>
         </div>
 
         {/* Footer */}
@@ -101,21 +91,6 @@ export default function LandingPage() {
         )}
       </div>
 
-      {/* Coming Soon Alert */}
-      {showComingSoon && (
-        <div className="modal-overlay" onClick={() => setShowComingSoon(false)} style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '320px', width: '90%', margin: 'auto' }}>
-            <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🏆</div>
-            <h3 className="mb-sm">Coming Soon!</h3>
-            <p className="mb-md" style={{ color: 'var(--text-secondary)' }}>
-              The Global Leaderboard is currently under development. Stay tuned!
-            </p>
-            <button className="btn btn-primary w-full" onClick={() => setShowComingSoon(false)}>
-              Got it
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

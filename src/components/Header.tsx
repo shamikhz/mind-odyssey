@@ -21,7 +21,6 @@ export default function Header() {
   const [formData, setFormData] = React.useState({ name: '', email: '', password: '' });
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [showComingSoon, setShowComingSoon] = React.useState(false);
   const [showShop, setShowShop] = React.useState(false);
 
   React.useEffect(() => {
@@ -265,9 +264,6 @@ export default function Header() {
                     <Link href="/profile" className="btn btn-ghost btn-sm w-full" style={{ justifyContent: 'flex-start', gap: '10px' }} onClick={() => setShowDropdown(false)}>
                       <User size={18} /> Profile
                     </Link>
-                    <button className="btn btn-ghost btn-sm w-full" style={{ justifyContent: 'flex-start', gap: '10px' }} onClick={() => { setShowDropdown(false); setShowComingSoon(true); }}>
-                      <Trophy size={18} /> Leaderboard
-                    </button>
                     <button className="btn btn-ghost btn-sm w-full" style={{ justifyContent: 'flex-start', gap: '10px', color: 'var(--warning)' }} onClick={() => setShowShop(true)}>
                       <span style={{ fontSize: '18px' }}>🛒</span> Store
                     </button>
@@ -363,21 +359,7 @@ export default function Header() {
           </div>
         </div>
       )}
-      {/* Coming Soon Alert */}
-      {showComingSoon && (
-        <div className="modal-overlay" onClick={() => setShowComingSoon(false)} style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '320px', width: '90%', margin: 'auto' }}>
-            <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🏆</div>
-            <h3 className="mb-sm">Coming Soon!</h3>
-            <p className="mb-md" style={{ color: 'var(--text-secondary)' }}>
-              The Global Leaderboard is currently under development. Stay tuned!
-            </p>
-            <button className="btn btn-primary w-full" onClick={() => setShowComingSoon(false)}>
-              Got it
-            </button>
-          </div>
-        </div>
-      )}
+      {/* End Auth Modal */}
     </header>
   );
 }
