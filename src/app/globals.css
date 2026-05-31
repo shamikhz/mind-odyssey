@@ -665,7 +665,7 @@ vercel-toolbar,
 
 /* ── Global Ad Hiding ─────────────────── */
 body.no-ads .adsbygoogle,
-body.no-ads iframe[src*="ad-"],
+body.no-ads iframe[src*="ad-"]:not(.rewarded-ad),
 body.no-ads .ad-sidebar,
 body.no-ads .ad-container {
   display: none !important;
