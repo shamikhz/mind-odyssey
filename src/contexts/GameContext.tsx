@@ -292,16 +292,29 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   if (!loaded) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: '#0a0a1a',
-        color: '#f1f5f9'
+      <GameContext.Provider value={{
+        state,
+        dispatch,
+        getStarsForLevel,
+        isLevelUnlocked,
+        isLevelCompleted,
+        getTotalStars,
+        getLevelsCleared,
+        getCategoryScore,
+        showAuthModal,
+        setShowAuthModal,
       }}>
-        <div className="loading-spinner" />
-      </div>
+        <div style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#0a0a1a',
+          color: '#f1f5f9'
+        }}>
+          <div className="loading-spinner" />
+        </div>
+      </GameContext.Provider>
     );
   }
 
