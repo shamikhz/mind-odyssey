@@ -192,6 +192,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
             // If they have remote progress, you can sync it here
           } else {
              // Fallback to session metadata if profile doesn't exist yet
+             dispatch({ type: 'RESET_PROGRESS' });
              dispatch({
               type: 'LOGIN',
               user: {
