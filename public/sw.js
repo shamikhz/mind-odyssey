@@ -36,3 +36,12 @@ self.addEventListener('fetch', (e) => {
     })
   );
 });
+
+self.addEventListener('sync', (e) => {
+  if (e.tag === 'defer-task') {
+    e.waitUntil(
+      // Placeholder for deferred task logic (e.g., syncing user progress)
+      Promise.resolve()
+    );
+  }
+});
