@@ -3,7 +3,9 @@
   "short_name": "Mind Odyssey",
   "description": "50-level personality enhancement puzzle game.",
   "start_url": "/",
+  "id": "/",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#0a0a1a",
   "theme_color": "#7c3aed",
   "icons": [
