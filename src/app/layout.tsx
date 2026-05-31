@@ -31,14 +31,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8017926549395034" crossOrigin="anonymous"></script>
-      </head>
       <body>
         <GameProvider>{children}</GameProvider>
         <Script 
           src="https://checkout.razorpay.com/v1/checkout.js" 
           strategy="lazyOnload" 
+        />
+        {/* Google AdSense Script */}
+        <Script
+          async
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT_ID || 'ca-pub-XXXXXXXXXXXXXX'}`}
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
         />
         <script dangerouslySetInnerHTML={{ __html: `
           if ('serviceWorker' in (globalThis as any).navigator) {
