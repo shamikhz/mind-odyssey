@@ -191,17 +191,44 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
             }
             // If they have remote progress, you can sync it here
           } else {
-             // Profile doesn't exist in DB (e.g. deleted by admin)
-             // Reset local progress to ensure a clean slate as requested
-             dispatch({ type: 'RESET_PROGRESS' });
-
-             // Instantly log the user out from the web app
-             await supabase.auth.signOut();
-             dispatch({ type: 'LOGOUT' });
+             // Profile doesn't exist in DB
+             // Check if this is a newly signed up user (created within the last hour)
+             const isNewUser = new Date().getTime() - new Date(session.user.created_at).getTime() < 60 * 60 * 1000;
              
-             // Optionally redirect to home or show an alert (optional)
-             if (typeof window !== 'undefined') {
-               window.location.href = '/';
+             if (isNewUser) {
+                // Auto-create the profile for new sign-ups to prevent instant logout
+                const newProfile = {
+                   id: session.user.id,
+                   name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Player',
+                   avatar: session.user.user_metadata?.avatar_url || '',
+                   progress: {},
+                   currentLevel: 1,
+                   hintsRemaining: 10,
+                   totalTimePlayed: 0
+                };
+                
+                await supabase.from('profiles').insert(newProfile);
+                
+                dispatch({
+                  type: 'LOGIN',
+                  user: {
+                    id: session.user.id,
+                    name: newProfile.name,
+                    email: session.user.email || '',
+                    avatar: newProfile.avatar
+                  }
+                });
+             } else {
+               // Profile doesn't exist in DB and they are NOT a new user
+               // (e.g. deleted by admin). Reset local progress and instantly log out.
+               dispatch({ type: 'RESET_PROGRESS' });
+  
+               await supabase.auth.signOut();
+               dispatch({ type: 'LOGOUT' });
+               
+               if (typeof window !== 'undefined') {
+                 window.location.href = '/';
+               }
              }
           }
         } catch (error) {

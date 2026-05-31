@@ -61,7 +61,10 @@ export default function Header() {
         return;
       }
 
-      // If sign in failed, try to sign up
+      // If the user doesn't exist, signInError will usually be "Invalid login credentials" in newer Supabase versions
+      // To be safe, we only attempt sign up if we are sure it's not just a wrong password for an existing account,
+      // OR we just try sign up and if it says "User already registered", we know they just typed the wrong password.
+      
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -71,14 +74,15 @@ export default function Header() {
       });
 
       if (signUpError) {
-        // If it's still an error, show it (e.g., wrong password, invalid email)
-        // If user already registered, Supabase might throw user already exists.
-        throw new Error(signUpError.message || signInError?.message || 'Failed to authenticate');
+        if (signUpError.message.includes('User already registered')) {
+           throw new Error('Invalid email or password.');
+        }
+        throw new Error(signUpError.message || 'Failed to authenticate');
       }
 
       if (signUpData?.user) {
         setShowAuthModal(false);
-        router.push('/');
+        // Do not redirect immediately, let GameContext handle the new session
         setFormData({ name: '', email: '', password: '' });
       }
 
