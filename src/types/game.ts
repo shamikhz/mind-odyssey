@@ -48,6 +48,7 @@ export interface GameState {
   totalTimePlayed: number;
   playerName: string;
   user: UserProfile;
+  adsRemoved: boolean;
 }
 
 export interface PuzzleProps {
@@ -69,4 +70,5 @@ export type GameAction =
   | { type: 'LOGOUT' }
   | { type: 'UPDATE_PROFILE'; updates: Partial<UserProfile> }
   | { type: 'ADD_TIME'; seconds: number }
-  | { type: 'BUY_HINTS'; count: number };
+  | { type: 'BUY_HINTS'; count: number }
+  | { type: 'REMOVE_ADS' };

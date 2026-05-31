@@ -107,15 +107,17 @@ export default function ProfilePage() {
     <div className="page" style={{ paddingTop: '80px', display: 'flex', justifyContent: 'center', gap: '24px', maxWidth: '100vw', overflowX: 'hidden' }}>
 
       {/* Left Ad Sidebar (Hidden on mobile/tablets) */}
-      <div className="ad-sidebar hidden-mobile" style={{ width: '160px', flexShrink: 0 }}>
-        <iframe
-          src="/ad-160x600.html"
-          width="160"
-          height="600"
-          frameBorder="0"
-          scrolling="no"
-        />
-      </div>
+      {!state.adsRemoved && (
+        <div className="ad-sidebar hidden-mobile" style={{ width: '160px', flexShrink: 0 }}>
+          <iframe
+            src="/ad-160x600.html"
+            width="160"
+            height="600"
+            frameBorder="0"
+            scrolling="no"
+          />
+        </div>
+      )}
 
       <div className="page-content" style={{ maxWidth: '900px', flex: 1, padding: '0 16px' }}>
         <Link href="/" className="btn btn-ghost btn-sm mb-md" style={{ display: 'inline-flex' }}>← Back</Link>
@@ -302,15 +304,17 @@ export default function ProfilePage() {
       </div>
 
       {/* Right Ad Sidebar (Hidden on mobile/tablets) */}
-      <div className="ad-sidebar hidden-mobile" style={{ width: '160px', flexShrink: 0 }}>
-        <iframe
-          src="/ad-160x600.html"
-          width="160"
-          height="600"
-          frameBorder="0"
-          scrolling="no"
-        />
-      </div>
+      {!state.adsRemoved && (
+        <div className="ad-sidebar hidden-mobile" style={{ width: '160px', flexShrink: 0 }}>
+          <iframe
+            src="/ad-160x600.html"
+            width="160"
+            height="600"
+            frameBorder="0"
+            scrolling="no"
+          />
+        </div>
+      )}
 
     </div>
   );

@@ -74,16 +74,18 @@ export default function LevelsPage() {
         </div>
 
         {/* Third Party Ad Banner (728x90) */}
-        <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginTop: '20px', paddingBottom: '20px', overflow: 'hidden' }}>
-          <iframe 
-            src="/ad-728.html" 
-            width="728" 
-            height="90" 
-            frameBorder="0" 
-            scrolling="no" 
-            style={{ maxWidth: '100%' }}
-          />
-        </div>
+        {!state.adsRemoved && (
+          <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginTop: '20px', paddingBottom: '20px', overflow: 'hidden' }}>
+            <iframe 
+              src="/ad-728.html" 
+              width="728" 
+              height="90" 
+              frameBorder="0" 
+              scrolling="no" 
+              style={{ maxWidth: '100%' }}
+            />
+          </div>
+        )}
 
       </div>
     </div>

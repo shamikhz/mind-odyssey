@@ -137,14 +137,23 @@ export default function Header() {
             }
             
             // Success!
-            dispatch({ type: 'BUY_HINTS', count });
-            window.alert(`Success! ${count} hints added to your account.`);
+            if (count === -1) {
+              dispatch({ type: 'REMOVE_ADS' });
+              window.alert(`Success! Ads have been permanently removed.`);
+            } else {
+              dispatch({ type: 'BUY_HINTS', count });
+              window.alert(`Success! ${count} hints added to your account.`);
+            }
             setShowDropdown(false);
             setShowShop(false);
           } catch (dbError) {
             console.error('Error saving payment record:', dbError);
-            // Still give hints even if DB logging fails, to ensure good UX
-            dispatch({ type: 'BUY_HINTS', count });
+            // Still grant reward even if DB logging fails, to ensure good UX
+            if (count === -1) {
+              dispatch({ type: 'REMOVE_ADS' });
+            } else {
+              dispatch({ type: 'BUY_HINTS', count });
+            }
           }
         },
         prefill: {
@@ -216,7 +225,7 @@ export default function Header() {
                     <button className="btn btn-ghost btn-sm w-full" style={{ justifyContent: 'flex-start', gap: '10px', marginBottom: '8px', color: 'var(--accent-primary)' }} onClick={() => setShowShop(false)}>
                       ← Back to Menu
                     </button>
-                    <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', padding: '0 8px 8px' }}>Select a Hint Pack:</p>
+                    <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', padding: '0 8px 8px' }}>Store Options:</p>
                     <button className="btn btn-secondary btn-sm w-full mb-xs" style={{ justifyContent: 'space-between', padding: '12px' }} onClick={() => handlePayment(10, 5)} disabled={loading}>
                       <span style={{ fontSize: '0.95rem', fontWeight: 600 }}>💡 5 Hints</span>
                       <span style={{ fontSize: '0.85rem', opacity: 0.9 }}>{loading ? '...' : '₹10'}</span>
@@ -225,10 +234,19 @@ export default function Header() {
                       <span style={{ fontSize: '0.95rem', fontWeight: 600 }}>💡 20 Hints</span>
                       <span style={{ fontSize: '0.85rem', opacity: 0.9 }}>{loading ? '...' : '₹35'}</span>
                     </button>
-                    <button className="btn btn-primary btn-sm w-full" style={{ justifyContent: 'space-between', padding: '12px' }} onClick={() => handlePayment(150, 100)} disabled={loading}>
+                    <button className="btn btn-primary btn-sm w-full mb-xs" style={{ justifyContent: 'space-between', padding: '12px' }} onClick={() => handlePayment(150, 100)} disabled={loading}>
                       <span style={{ fontSize: '0.95rem', fontWeight: 600 }}>💡 100 Hints</span>
                       <span style={{ fontSize: '0.85rem', opacity: 0.9 }}>{loading ? '...' : '₹150'}</span>
                     </button>
+                    {!state.adsRemoved && (
+                      <>
+                        <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '8px 0' }} />
+                        <button className="btn btn-secondary btn-sm w-full" style={{ justifyContent: 'space-between', padding: '12px', background: 'var(--surface-hover)' }} onClick={() => handlePayment(50, -1)} disabled={loading}>
+                          <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--danger)' }}>🚫 Remove Ads</span>
+                          <span style={{ fontSize: '0.85rem', opacity: 0.9 }}>{loading ? '...' : '₹50'}</span>
+                        </button>
+                      </>
+                    )}
                   </div>
                 ) : (
                   <>
@@ -239,7 +257,7 @@ export default function Header() {
                       <Trophy size={18} /> Leaderboard
                     </button>
                     <button className="btn btn-ghost btn-sm w-full" style={{ justifyContent: 'flex-start', gap: '10px', color: 'var(--warning)' }} onClick={() => setShowShop(true)}>
-                      <span style={{ fontSize: '18px' }}>💡</span> Buy Hints
+                      <span style={{ fontSize: '18px' }}>🛒</span> Store
                     </button>
                     <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '8px 0' }} />
                     <button className="btn btn-ghost btn-sm w-full" style={{ justifyContent: 'flex-start', gap: '10px', color: 'var(--danger)', cursor: 'pointer', pointerEvents: 'auto' }} onClick={handleLogout}>

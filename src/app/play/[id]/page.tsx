@@ -194,6 +194,11 @@ export default function PlayPage() {
   const adIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
 
   const handleWatchAd = () => {
+    if (state.adsRemoved) {
+      dispatch({ type: 'ADD_HINT' });
+      return;
+    }
+    
     setShowAdModal(true);
     setAdCountdown(10);
     let currentCount = 10;
@@ -211,6 +216,11 @@ export default function PlayPage() {
   };
 
   const handleSkipLevel = () => {
+    if (state.adsRemoved) {
+      handleComplete(0);
+      return;
+    }
+    
     setShowSkipAdModal(true);
     setSkipAdCountdown(30);
     let currentCount = 30;
@@ -351,16 +361,18 @@ export default function PlayPage() {
       {!completed && (
         <div className="flex-col">
           {/* Gameplay Footer Ad */}
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0', background: 'rgba(0,0,0,0.02)', borderTop: '1px solid var(--border)', overflow: 'hidden' }}>
-            <iframe 
-              src="/ad-728.html" 
-              width="728" 
-              height="90" 
-              frameBorder="0" 
-              scrolling="no" 
-              style={{ maxWidth: '100%' }}
-            />
-          </div>
+          {!state.adsRemoved && (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0', background: 'rgba(0,0,0,0.02)', borderTop: '1px solid var(--border)', overflow: 'hidden' }}>
+              <iframe 
+                src="/ad-728.html" 
+                width="728" 
+                height="90" 
+                frameBorder="0" 
+                scrolling="no" 
+                style={{ maxWidth: '100%' }}
+              />
+            </div>
+          )}
           <div className="bottom-bar">
             <button className="btn btn-secondary btn-sm" onClick={() => setShowHintModal(true)} disabled={hintIndex >= level.hints.length}>
               💡 Hint ({state.hintsRemaining})
@@ -588,15 +600,17 @@ export default function PlayPage() {
             </div>
 
             {/* Level Complete Third Party Ad Banner */}
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
-              <iframe 
-                src="/ad-320.html" 
-                width="320" 
-                height="50" 
-                frameBorder="0" 
-                scrolling="no" 
-              />
-            </div>
+            {!state.adsRemoved && (
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
+                <iframe 
+                  src="/ad-320.html" 
+                  width="320" 
+                  height="50" 
+                  frameBorder="0" 
+                  scrolling="no" 
+                />
+              </div>
+            )}
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {hasNextLevel && (

@@ -87,16 +87,18 @@ export default function LandingPage() {
         </p>
 
         {/* Adsterra Homepage Banner (728x90) */}
-        <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginTop: '10px', paddingBottom: '20px', overflow: 'hidden' }}>
-          <iframe 
-            src="/ad-728.html" 
-            width="728" 
-            height="90" 
-            frameBorder="0" 
-            scrolling="no" 
-            style={{ maxWidth: '100%' }}
-          />
-        </div>
+        {!state.adsRemoved && (
+          <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginTop: '10px', paddingBottom: '20px', overflow: 'hidden' }}>
+            <iframe 
+              src="/ad-728.html" 
+              width="728" 
+              height="90" 
+              frameBorder="0" 
+              scrolling="no" 
+              style={{ maxWidth: '100%' }}
+            />
+          </div>
+        )}
       </div>
 
       {/* Coming Soon Alert */}

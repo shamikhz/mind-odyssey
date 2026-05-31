@@ -20,6 +20,7 @@ const initialState: GameState = {
     avatar: '',
     isLoggedIn: false,
   },
+  adsRemoved: false,
 };
 
 function gameReducer(state: GameState, action: GameAction): GameState {
@@ -59,6 +60,11 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         hintsRemaining: state.hintsRemaining + action.count,
       };
+    case 'REMOVE_ADS':
+      return {
+        ...state,
+        adsRemoved: true,
+      };
     case 'ADD_TIME':
       return {
         ...state,
@@ -95,7 +101,8 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       return { 
         ...initialState, 
         user: state.user,
-        playerName: state.playerName
+        playerName: state.playerName,
+        adsRemoved: state.adsRemoved // preserve ad removal
       };
     case 'LOAD_SAVED':
       return { ...initialState, ...action.state, user: { ...initialState.user, ...action.state.user } };
@@ -179,6 +186,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
                 avatar: profile.avatar || session.user.user_metadata?.avatar_url || ''
               }
             });
+            if (profile.adsRemoved) {
+              dispatch({ type: 'REMOVE_ADS' });
+            }
             // If they have remote progress, you can sync it here
           } else {
              // Fallback to session metadata if profile doesn't exist yet
@@ -224,7 +234,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
             progress: state.progress,
             currentLevel: state.currentLevel,
             totalTimePlayed: state.totalTimePlayed,
-            hintsRemaining: state.hintsRemaining
+            hintsRemaining: state.hintsRemaining,
+            adsRemoved: state.adsRemoved
           }).eq('id', state.user.id).then(({ error }) => {
             if (error) console.error('Error syncing progress:', error);
           });
