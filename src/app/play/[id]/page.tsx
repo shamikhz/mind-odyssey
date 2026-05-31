@@ -194,11 +194,6 @@ export default function PlayPage() {
   const adIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
 
   const handleWatchAd = () => {
-    if (state.adsRemoved) {
-      dispatch({ type: 'ADD_HINT' });
-      return;
-    }
-    
     setShowAdModal(true);
     setAdCountdown(10);
     let currentCount = 10;
@@ -216,11 +211,6 @@ export default function PlayPage() {
   };
 
   const handleSkipLevel = () => {
-    if (state.adsRemoved) {
-      handleComplete(0);
-      return;
-    }
-    
     setShowSkipAdModal(true);
     setSkipAdCountdown(30);
     let currentCount = 30;

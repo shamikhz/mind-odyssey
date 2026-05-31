@@ -244,6 +244,17 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     }
   }, [state, loaded, session]);
 
+  // Global body class for ad removal (hides injected auto-ads like AdSense)
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      if (state.adsRemoved) {
+        document.body.classList.add('no-ads');
+      } else {
+        document.body.classList.remove('no-ads');
+      }
+    }
+  }, [state.adsRemoved]);
+
   const getStarsForLevel = useCallback(
     (levelId: number) => state.progress[levelId]?.stars ?? 0,
     [state.progress]

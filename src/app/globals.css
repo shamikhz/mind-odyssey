@@ -663,11 +663,14 @@ vercel-toolbar,
   display: none !important;
 }
 
-/* ── Hide Empty Ad Placeholders ────────── */
-ins.adsbygoogle[data-ad-status="unfilled"],
-ins.adsbygoogle:empty {
+/* ── Global Ad Hiding ─────────────────── */
+body.no-ads .adsbygoogle,
+body.no-ads iframe[src*="ad-"],
+body.no-ads .ad-sidebar,
+body.no-ads .ad-container {
   display: none !important;
   height: 0 !important;
+  width: 0 !important;
   margin: 0 !important;
   padding: 0 !important;
 }
