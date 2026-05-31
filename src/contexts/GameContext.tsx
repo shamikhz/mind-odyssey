@@ -191,8 +191,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
             }
             // If they have remote progress, you can sync it here
           } else {
-             // Fallback to session metadata if profile doesn't exist yet
+             // Profile doesn't exist in DB (e.g. deleted by admin)
+             // Reset local progress to ensure a clean slate as requested
              dispatch({ type: 'RESET_PROGRESS' });
+
+             // Fallback to session metadata if profile doesn't exist yet
              dispatch({
               type: 'LOGIN',
               user: {
