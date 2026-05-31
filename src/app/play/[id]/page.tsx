@@ -473,8 +473,8 @@ export default function PlayPage() {
             <div className="ad-wrapper">
               <iframe 
                 className="rewarded-ad"
-                src="https://www.effectivecpmnetwork.com/edfkn8z1?key=c3a2e6d1b6a2fabb7ba0f90467651f8b"
-                width="250" 
+                src="/ad-300.html"
+                width="300" 
                 height="250" 
                 frameBorder="0" 
                 scrolling="no" 
