@@ -24,6 +24,20 @@ export default function Header() {
   const [showComingSoon, setShowComingSoon] = React.useState(false);
   const [showShop, setShowShop] = React.useState(false);
 
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const searchParams = new URLSearchParams(window.location.search);
+      const errDesc = searchParams.get('error_description') || hashParams.get('error_description');
+      if (errDesc) {
+        setError(errDesc.replace(/\+/g, ' '));
+        setShowAuthModal(true);
+        // Clean up URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+  }, [setShowAuthModal]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -77,10 +91,20 @@ export default function Header() {
   };
 
   const handleGoogleLogin = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: window.location.origin }
-    });
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { 
+          redirectTo: `${window.location.origin}/`,
+          queryParams: {
+            prompt: 'consent',
+          }
+        }
+      });
+      if (error) throw error;
+    } catch (err: any) {
+      setError(err.message || 'Failed to initialize Google Login');
+    }
   };
 
   const handleLogout = async (e?: React.MouseEvent) => {
