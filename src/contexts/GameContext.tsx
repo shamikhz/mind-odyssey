@@ -195,16 +195,14 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
              // Reset local progress to ensure a clean slate as requested
              dispatch({ type: 'RESET_PROGRESS' });
 
-             // Fallback to session metadata if profile doesn't exist yet
-             dispatch({
-              type: 'LOGIN',
-              user: {
-                id: session.user.id,
-                name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Player',
-                email: session.user.email || '',
-                avatar: session.user.user_metadata?.avatar_url || ''
-              }
-            });
+             // Instantly log the user out from the web app
+             await supabase.auth.signOut();
+             dispatch({ type: 'LOGOUT' });
+             
+             // Optionally redirect to home or show an alert (optional)
+             if (typeof window !== 'undefined') {
+               window.location.href = '/';
+             }
           }
         } catch (error) {
           console.error('Failed to sync profile', error);
