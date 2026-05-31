@@ -362,7 +362,7 @@ export default function PlayPage() {
         <div className="flex-col">
           {/* Gameplay Footer Ad */}
           {!state.adsRemoved && (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0', background: 'rgba(0,0,0,0.02)', borderTop: '1px solid var(--border)', overflow: 'hidden' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0', overflow: 'hidden' }}>
               <iframe 
                 src="/ad-728.html" 
                 width="728" 

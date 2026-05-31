@@ -663,14 +663,11 @@ vercel-toolbar,
   display: none !important;
 }
 
-/* ── Hide AdSense Auto Ads / Placeholders ── */
-body.ads-removed .adsbygoogle,
-body.ads-removed iframe[name^="google_ads_iframe"],
-body.ads-removed ins.adsbygoogle {
+/* ── Hide Empty Ad Placeholders ────────── */
+ins.adsbygoogle[data-ad-status="unfilled"],
+ins.adsbygoogle:empty {
   display: none !important;
   height: 0 !important;
-  width: 0 !important;
-  padding: 0 !important;
   margin: 0 !important;
-  visibility: hidden !important;
+  padding: 0 !important;
 }

@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { GameProvider } from "@/contexts/GameContext";
+import AdManager from "@/components/AdManager";
 
 import Script from "next/script";
-import AdSenseLoader from "@/components/AdSenseLoader";
 
 export const viewport = {
   themeColor: "#7c3aed",
@@ -38,8 +38,8 @@ export default function RootLayout({
           src="https://checkout.razorpay.com/v1/checkout.js" 
           strategy="lazyOnload" 
         />
-        {/* Google AdSense Script - Dynamically loaded */}
-        <AdSenseLoader />
+        {/* Google AdSense Script via AdManager */}
+        <AdManager />
         <script dangerouslySetInnerHTML={{ __html: `
           if ('serviceWorker' in (globalThis as any).navigator) {
             window.addEventListener('load', function() {
