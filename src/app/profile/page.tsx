@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useGame } from '@/contexts/GameContext';
-import { supabase } from '@/lib/supabase';
 import { personalityInsights } from '@/data/personalityInsights';
 
 const skillCategories = [
@@ -25,7 +24,7 @@ function formatTime(seconds: number): string {
 export default function ProfilePage() {
   const { state, getLevelsCleared, getTotalStars, getCategoryScore, dispatch } = useGame();
   const [editName, setEditName] = useState(state.playerName);
-  const [avatar, setAvatar] = useState(state.user.avatar || '');
+  const [avatar, setAvatar] = useState(state.user?.avatar || '');
   const [showUpdateSuccess, setShowUpdateSuccess] = useState(false);
   const [showReset, setShowReset] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -34,49 +33,27 @@ export default function ProfilePage() {
   // Sync with global state if it changes
   React.useEffect(() => {
     setEditName(state.playerName);
-    setAvatar(state.user.avatar || '');
-  }, [state.playerName, state.user.avatar]);
+    setAvatar(state.user?.avatar || '');
+  }, [state.playerName, state.user?.avatar]);
 
   const handleReset = async () => {
     setLoading(true);
     try {
-      if (state.user.isLoggedIn && state.user.id) {
-        const { error } = await supabase.from('profiles').update({
-          progress: {},
-          totalTimePlayed: 0,
-          currentLevel: 1,
-          hintsRemaining: 10
-        }).eq('id', state.user.id);
-
-        if (error) console.error('Supabase error on reset:', error);
-      }
+      // Just reset local state
+      dispatch({ type: 'RESET_PROGRESS' });
+      setShowReset(false);
     } catch (err: any) {
       console.error('Reset error:', err);
     } finally {
-      dispatch({ type: 'RESET_PROGRESS' });
-      setShowReset(false);
       setLoading(false);
     }
   };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!state.user.id) return;
 
     setLoading(true);
     try {
-      // 1. Update DB via Supabase
-      const { error } = await supabase.from('profiles').update({
-        name: editName,
-        avatar: avatar,
-      }).eq('id', state.user.id);
-
-      if (error) {
-        console.error('Supabase Error:', error);
-        throw new Error(error.message || 'Failed to update profile');
-      }
-
-      // 2. Update Local State
       dispatch({ type: 'UPDATE_PROFILE', updates: { name: editName, avatar } });
       dispatch({ type: 'SET_PLAYER_NAME', name: editName });
       setShowUpdateSuccess(true);
@@ -105,20 +82,6 @@ export default function ProfilePage() {
 
   return (
     <div className="page" style={{ paddingTop: '80px', display: 'flex', justifyContent: 'center', gap: '24px', maxWidth: '100vw', overflowX: 'hidden' }}>
-
-      {/* Left Ad Sidebar (Hidden on mobile/tablets) */}
-      {!state.adsRemoved && (
-        <div className="ad-sidebar hidden-mobile" style={{ width: '160px', flexShrink: 0 }}>
-          <iframe
-            src="/ad-160x600.html"
-            width="160"
-            height="600"
-            frameBorder="0"
-            scrolling="no"
-          />
-        </div>
-      )}
-
       <div className="page-content" style={{ maxWidth: '900px', flex: 1, padding: '0 16px' }}>
         <Link href="/" className="btn btn-ghost btn-sm mb-md" style={{ display: 'inline-flex' }}>← Back</Link>
 
@@ -142,7 +105,7 @@ export default function ProfilePage() {
                 {avatar ? (
                   <img src={avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
-                  <span>{state.user.name ? state.user.name[0] : (state.playerName ? state.playerName[0] : 'P')}</span>
+                  <span>{state.playerName ? state.playerName[0].toUpperCase() : 'P'}</span>
                 )}
                 <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.6)', fontSize: '0.65rem', padding: '4px 0', fontWeight: 700, color: 'white', textTransform: 'uppercase', letterSpacing: '1px' }}>
                   Change
@@ -156,7 +119,7 @@ export default function ProfilePage() {
                 style={{ display: 'none' }}
               />
               <h2><span className="gradient-text">{state.playerName}</span></h2>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{state.user.email || 'Adventurer'}</p>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Explorer</p>
             </div>
 
             <div className="card">
@@ -229,7 +192,7 @@ export default function ProfilePage() {
                     ...cat,
                     score: getCategoryScore(cat.key)
                   }));
-                  // Prevent empty array reduce errors, though it shouldn't happen here
+                  // Prevent empty array reduce errors
                   const highestCategory = categoriesData.reduce((prev, current) => (prev.score > current.score) ? prev : current) || categoriesData[0];
                   const lowestCategory = categoriesData.reduce((prev, current) => (prev.score < current.score) ? prev : current) || categoriesData[0];
 
@@ -302,20 +265,6 @@ export default function ProfilePage() {
           </div>
         )}
       </div>
-
-      {/* Right Ad Sidebar (Hidden on mobile/tablets) */}
-      {!state.adsRemoved && (
-        <div className="ad-sidebar hidden-mobile" style={{ width: '160px', flexShrink: 0 }}>
-          <iframe
-            src="/ad-160x600.html"
-            width="160"
-            height="600"
-            frameBorder="0"
-            scrolling="no"
-          />
-        </div>
-      )}
-
     </div>
   );
 }

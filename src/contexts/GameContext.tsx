@@ -3,8 +3,6 @@
 import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import { GameState, GameAction } from '@/types/game';
 
-import { supabase } from '@/lib/supabase';
-
 const STORAGE_KEY = 'mind-odyssey-state';
 
 const initialState: GameState = {
@@ -14,13 +12,11 @@ const initialState: GameState = {
   totalTimePlayed: 0,
   playerName: 'Player',
   user: {
-    id: '',
-    name: '',
+    id: 'local_user',
+    name: 'Player',
     email: '',
     avatar: '',
-    isLoggedIn: false,
   },
-  adsRemoved: false,
 };
 
 function gameReducer(state: GameState, action: GameAction): GameState {
@@ -55,15 +51,11 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         hintsRemaining: state.hintsRemaining + 1,
       };
-    case 'BUY_HINTS':
+    case 'CLAIM_DAILY_GIFT':
       return {
         ...state,
-        hintsRemaining: state.hintsRemaining + action.count,
-      };
-    case 'REMOVE_ADS':
-      return {
-        ...state,
-        adsRemoved: true,
+        hintsRemaining: state.hintsRemaining + 5,
+        lastDailyGiftDate: action.date,
       };
     case 'ADD_TIME':
       return {
@@ -76,22 +68,6 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         playerName: action.name,
         user: { ...state.user, name: action.name },
       };
-    case 'LOGIN':
-      return {
-        ...state,
-        user: {
-          id: action.user.id || 'usr_' + Math.random().toString(36).substr(2, 9),
-          name: action.user.name || 'Explorer',
-          email: action.user.email || '',
-          avatar: action.user.avatar || '',
-          isLoggedIn: true,
-        },
-      };
-    case 'LOGOUT':
-      return {
-        ...state,
-        user: { ...initialState.user },
-      };
     case 'UPDATE_PROFILE':
       return {
         ...state,
@@ -102,7 +78,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         ...initialState, 
         user: state.user,
         playerName: state.playerName,
-        adsRemoved: state.adsRemoved // preserve ad removal
+        lastDailyGiftDate: state.lastDailyGiftDate,
       };
     case 'LOAD_SAVED':
       return { ...initialState, ...action.state, user: { ...initialState.user, ...action.state.user } };
@@ -120,15 +96,12 @@ interface GameContextType {
   getTotalStars: () => number;
   getLevelsCleared: () => number;
   getCategoryScore: (category: string) => number;
-  showAuthModal: boolean;
-  setShowAuthModal: (show: boolean) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export function GameProvider({ children }: { children: React.ReactNode }) {
   const [loaded, setLoaded] = React.useState(false);
-  const [showAuthModal, setShowAuthModal] = React.useState(false);
 
   // Initialize state from localStorage (lazy initializer)
   const initState = (initial: typeof initialState) => {
@@ -146,106 +119,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const [state, dispatch] = useReducer(gameReducer, initialState, initState);
 
-  const [session, setSession] = React.useState<any>(null);
-
-  // Sync with Supabase Auth
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
+    setLoaded(true);
   }, []);
 
-  // Sync Profile from Supabase DB
-  useEffect(() => {
-    const syncProfile = async () => {
-      if (session?.user) {
-        try {
-          const { data: profile, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-
-          if (!error && profile) {
-            dispatch({
-              type: 'LOGIN',
-              user: {
-                id: session.user.id,
-                name: profile.name || session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Player',
-                email: session.user.email || '',
-                avatar: profile.avatar || session.user.user_metadata?.avatar_url || ''
-              }
-            });
-            if (profile.adsRemoved) {
-              dispatch({ type: 'REMOVE_ADS' });
-            }
-            // If they have remote progress, you can sync it here
-          } else {
-             // Profile doesn't exist in DB
-             // Check if this is a newly signed up user (created within the last hour)
-             const isNewUser = new Date().getTime() - new Date(session.user.created_at).getTime() < 60 * 60 * 1000;
-             
-             if (isNewUser) {
-                // Auto-create the profile for new sign-ups to prevent instant logout
-                const newProfile = {
-                   id: session.user.id,
-                   name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Player',
-                   avatar: session.user.user_metadata?.avatar_url || '',
-                   progress: {},
-                   currentLevel: 1,
-                   hintsRemaining: 10,
-                   totalTimePlayed: 0
-                };
-                
-                await supabase.from('profiles').insert(newProfile);
-                
-                dispatch({
-                  type: 'LOGIN',
-                  user: {
-                    id: session.user.id,
-                    name: newProfile.name,
-                    email: session.user.email || '',
-                    avatar: newProfile.avatar
-                  }
-                });
-             } else {
-               // Profile doesn't exist in DB and they are NOT a new user
-               // (e.g. deleted by admin). Reset local progress and instantly log out.
-               dispatch({ type: 'RESET_PROGRESS' });
-  
-               await supabase.auth.signOut();
-               dispatch({ type: 'LOGOUT' });
-               
-               if (typeof window !== 'undefined') {
-                 window.location.href = '/';
-               }
-             }
-          }
-        } catch (error) {
-          console.error('Failed to sync profile', error);
-        }
-      } else {
-        dispatch({ type: 'LOGOUT' });
-      }
-      setLoaded(true);
-    };
-    
-    syncProfile();
-  }, [session]);
-
   // Persist state on every change
-  const syncTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
-
   useEffect(() => {
     if (loaded) {
       try {
@@ -254,35 +132,21 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       } catch {
         // Ignore storage errors
       }
-
-      // Sync progress to Supabase DB if logged in, debounced to prevent spam
-      if (session?.user && state.user.id) {
-        if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
-        syncTimeoutRef.current = setTimeout(() => {
-          supabase.from('profiles').update({
-            progress: state.progress,
-            currentLevel: state.currentLevel,
-            totalTimePlayed: state.totalTimePlayed,
-            hintsRemaining: state.hintsRemaining,
-            adsRemoved: state.adsRemoved
-          }).eq('id', state.user.id).then(({ error }) => {
-            if (error) console.error('Error syncing progress:', error);
-          });
-        }, 2000); // 2 second debounce
-      }
     }
-  }, [state, loaded, session]);
+  }, [state, loaded]);
 
-  // Global body class for ad removal (hides injected auto-ads like AdSense)
+  // Daily Gift Check
   useEffect(() => {
-    if (typeof document !== 'undefined') {
-      if (state.adsRemoved) {
-        document.body.classList.add('no-ads');
-      } else {
-        document.body.classList.remove('no-ads');
+    if (loaded) {
+      const today = new Date().toLocaleDateString('en-CA'); // Gets YYYY-MM-DD
+      if (state.lastDailyGiftDate !== today) {
+        dispatch({ type: 'CLAIM_DAILY_GIFT', date: today });
+        if (typeof window !== 'undefined') {
+          window.alert("🎁 You received your daily gift of 5 free hints!");
+        }
       }
     }
-  }, [state.adsRemoved]);
+  }, [loaded, state.lastDailyGiftDate]);
 
   const getStarsForLevel = useCallback(
     (levelId: number) => state.progress[levelId]?.stars ?? 0,
@@ -330,8 +194,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         getTotalStars,
         getLevelsCleared,
         getCategoryScore,
-        showAuthModal,
-        setShowAuthModal,
       }}>
         <div style={{
           minHeight: '100vh',
@@ -357,8 +219,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       getTotalStars,
       getLevelsCleared,
       getCategoryScore,
-      showAuthModal,
-      setShowAuthModal,
     }}>
       {children}
     </GameContext.Provider>
@@ -369,17 +229,8 @@ export function useGame() {
   const context = useContext(GameContext);
   if (!context) {
     if (typeof window === 'undefined') {
-      // Bulletproof fallback for Next.js SSR prerendering edge cases (like _not-found)
       return {
-        state: {
-          currentLevel: 1,
-          hintsRemaining: 10,
-          progress: {},
-          totalTimePlayed: 0,
-          playerName: 'Player',
-          user: { id: '', name: '', email: '', avatar: '', isLoggedIn: false },
-          adsRemoved: false,
-        },
+        state: initialState,
         dispatch: () => {},
         getStarsForLevel: () => 0,
         isLevelUnlocked: () => true,
@@ -387,8 +238,6 @@ export function useGame() {
         getTotalStars: () => 0,
         getLevelsCleared: () => 0,
         getCategoryScore: () => 0,
-        showAuthModal: false,
-        setShowAuthModal: () => {},
       } as unknown as GameContextType;
     }
     throw new Error('useGame must be used within a GameProvider');

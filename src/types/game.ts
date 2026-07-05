@@ -38,7 +38,6 @@ export interface UserProfile {
   name: string;
   email: string;
   avatar: string;
-  isLoggedIn: boolean;
 }
 
 export interface GameState {
@@ -48,7 +47,7 @@ export interface GameState {
   totalTimePlayed: number;
   playerName: string;
   user: UserProfile;
-  adsRemoved: boolean;
+  lastDailyGiftDate?: string;
 }
 
 export interface PuzzleProps {
@@ -66,9 +65,6 @@ export type GameAction =
   | { type: 'RESET_PROGRESS' }
   | { type: 'LOAD_SAVED'; state: GameState }
   | { type: 'SET_PLAYER_NAME'; name: string }
-  | { type: 'LOGIN'; user: Partial<UserProfile> }
-  | { type: 'LOGOUT' }
   | { type: 'UPDATE_PROFILE'; updates: Partial<UserProfile> }
   | { type: 'ADD_TIME'; seconds: number }
-  | { type: 'BUY_HINTS'; count: number }
-  | { type: 'REMOVE_ADS' };
+  | { type: 'CLAIM_DAILY_GIFT'; date: string };

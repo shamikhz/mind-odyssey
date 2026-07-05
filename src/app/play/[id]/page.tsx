@@ -7,7 +7,7 @@ import { useGame } from '@/contexts/GameContext';
 import { getLevelById, levels } from '@/data/levels';
 import { useTimer } from '@/hooks/useGameHooks';
 import confetti from 'canvas-confetti';
-import GoogleAd from '@/components/GoogleAd';
+
 
 // Lazy-loaded puzzle components
 const puzzleComponents: Record<string, React.LazyExoticComponent<React.ComponentType<PuzzleComponentProps>>> = {
@@ -131,13 +131,6 @@ export default function PlayPage() {
   const [completed, setCompleted] = useState(false);
   const [stars, setStars] = useState(0);
   const [showHintModal, setShowHintModal] = useState(false);
-  const [showAdModal, setShowAdModal] = useState(false);
-  const [adCountdown, setAdCountdown] = useState(10);
-  const [showSkipAdModal, setShowSkipAdModal] = useState(false);
-  const [skipAdCountdown, setSkipAdCountdown] = useState(30);
-  const [showSkipCancelWarning, setShowSkipCancelWarning] = useState(false);
-  const [showHintCancelWarning, setShowHintCancelWarning] = useState(false);
-  const skipIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
   const [currentHint, setCurrentHint] = useState<string | null>(null);
   const [hintIndex, setHintIndex] = useState(0);
   const [hintsUsedThisLevel, setHintsUsedThisLevel] = useState(0);
@@ -191,69 +184,7 @@ export default function PlayPage() {
     setShowHintModal(false);
   };
 
-  const adIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
 
-  const handleWatchAd = () => {
-    setShowAdModal(true);
-    setAdCountdown(10);
-    let currentCount = 10;
-    
-    adIntervalRef.current = setInterval(() => {
-      currentCount -= 1;
-      setAdCountdown(currentCount);
-      
-      if (currentCount <= 0) {
-        if (adIntervalRef.current) clearInterval(adIntervalRef.current);
-        dispatch({ type: 'ADD_HINT' });
-        setShowAdModal(false);
-      }
-    }, 1000);
-  };
-
-  const handleSkipLevel = () => {
-    setShowSkipAdModal(true);
-    setSkipAdCountdown(30);
-    let currentCount = 30;
-    
-    skipIntervalRef.current = setInterval(() => {
-      currentCount -= 1;
-      setSkipAdCountdown(currentCount);
-      
-      if (currentCount <= 0) {
-        if (skipIntervalRef.current) clearInterval(skipIntervalRef.current);
-        setShowSkipAdModal(false);
-        handleComplete(0);
-      }
-    }, 1000);
-  };
-
-  const cancelSkipAd = () => {
-    setShowSkipCancelWarning(true);
-  };
-
-  const confirmCancelSkipAd = () => {
-    if (skipIntervalRef.current) clearInterval(skipIntervalRef.current);
-    setShowSkipCancelWarning(false);
-    setShowSkipAdModal(false);
-  };
-
-  const declineCancelSkipAd = () => {
-    setShowSkipCancelWarning(false);
-  };
-
-  const cancelHintAd = () => {
-    setShowHintCancelWarning(true);
-  };
-
-  const confirmCancelHintAd = () => {
-    if (adIntervalRef.current) clearInterval(adIntervalRef.current);
-    setShowHintCancelWarning(false);
-    setShowAdModal(false);
-  };
-
-  const declineCancelHintAd = () => {
-    setShowHintCancelWarning(false);
-  };
 
   const handleReset = () => {
     timer.reset();
@@ -350,30 +281,16 @@ export default function PlayPage() {
       {/* Bottom Bar */}
       {!completed && (
         <div className="flex-col">
-          {/* Gameplay Footer Ad */}
-          {!state.adsRemoved && (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0', overflow: 'hidden' }}>
-              <iframe 
-                src="/ad-728.html" 
-                width="728" 
-                height="90" 
-                frameBorder="0" 
-                scrolling="no" 
-                style={{ maxWidth: '100%' }}
-              />
-            </div>
-          )}
+
           <div className="bottom-bar">
             <button className="btn btn-secondary btn-sm" onClick={() => setShowHintModal(true)} disabled={hintIndex >= level.hints.length}>
               💡 Hint ({state.hintsRemaining})
             </button>
-            <button className="btn btn-secondary btn-sm" onClick={handleWatchAd}>
-              📺 Ad (+1💡)
-            </button>
+
             <button className="btn btn-ghost btn-sm" onClick={handleReset}>
               🔄 Reset
             </button>
-            <button className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)' }} onClick={handleSkipLevel}>
+            <button className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)' }} onClick={() => handleComplete(0)}>
               ⏭️ Skip
             </button>
           </div>
@@ -399,163 +316,14 @@ export default function PlayPage() {
               <button className="btn btn-primary" onClick={handleUseHint} disabled={state.hintsRemaining <= 0 || hintIndex >= level.hints.length}>
                 Use Hint (-1💡)
               </button>
-              <button className="btn btn-secondary" onClick={() => { setShowHintModal(false); handleWatchAd(); }} disabled={hintIndex >= level.hints.length}>
-                Watch Ad (+1💡)
-              </button>
+
               <button className="btn btn-ghost" onClick={() => setShowHintModal(false)}>Cancel</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ─── Ad Modal ─── */}
-      {showAdModal && (
-        <div className="modal-overlay">
-          <div className="modal-content skip-ad-modal">
-            <div style={{ position: 'absolute', top: '16px', left: '16px', zIndex: 20 }}>
-               <button className="btn btn-ghost btn-sm" onClick={cancelHintAd} style={{ background: 'rgba(0,0,0,0.5)', color: 'white', padding: '6px 12px', fontSize: '0.85rem' }}>✕ Close</button>
-            </div>
-            
-            <div className="ad-wrapper">
-              <iframe 
-                className="rewarded-ad"
-                src="/ad-300.html"
-                width="300" 
-                height="250" 
-                frameBorder="0" 
-                scrolling="no" 
-                style={{ maxWidth: '100%' }}
-              />
-              <p style={{ marginTop: '16px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                Reward in {adCountdown}s...
-              </p>
-            </div>
 
-            {/* Top Right Countdown Overlay */}
-            <div style={{ 
-              position: 'absolute', 
-              top: '12px', 
-              right: '12px', 
-              background: 'rgba(0,0,0,0.7)', 
-              backdropFilter: 'blur(4px)',
-              color: 'white', 
-              borderRadius: '50%', 
-              width: '38px', 
-              height: '38px', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              fontWeight: 800,
-              fontSize: '1rem',
-              border: '2px solid var(--accent-secondary)',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-              zIndex: 10
-            }}>
-              {adCountdown}
-            </div>
-
-            {/* Reward Progress Bar (Optional, thin at bottom) */}
-            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '4px', background: 'rgba(255,255,255,0.1)' }}>
-              <div style={{ height: '100%', background: 'var(--accent-secondary)', width: `${((10 - adCountdown) / 10) * 100}%`, transition: 'width 1s linear' }} />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ─── Skip Level Ad Modal ─── */}
-      {showSkipAdModal && (
-        <div className="modal-overlay">
-          <div className="modal-content skip-ad-modal">
-            <div style={{ position: 'absolute', top: '16px', left: '16px', zIndex: 20 }}>
-               <button className="btn btn-ghost btn-sm" onClick={cancelSkipAd} style={{ background: 'rgba(0,0,0,0.5)', color: 'white', padding: '6px 12px', fontSize: '0.85rem' }}>✕ Close</button>
-            </div>
-            
-            <div className="ad-wrapper">
-              <iframe 
-                className="rewarded-ad"
-                src="/ad-300.html"
-                width="300" 
-                height="250" 
-                frameBorder="0" 
-                scrolling="no" 
-              />
-              <p style={{ marginTop: '16px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                Skipping level in {skipAdCountdown}s...
-              </p>
-            </div>
-
-            {/* Top Right Countdown Overlay */}
-            <div style={{ 
-              position: 'absolute', 
-              top: '12px', 
-              right: '12px', 
-              background: 'rgba(0,0,0,0.7)', 
-              backdropFilter: 'blur(4px)',
-              color: 'white', 
-              borderRadius: '50%', 
-              width: '38px', 
-              height: '38px', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              fontWeight: 800,
-              fontSize: '1rem',
-              border: '2px solid var(--danger)',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-              zIndex: 10
-            }}>
-              {skipAdCountdown}
-            </div>
-
-            {/* Reward Progress Bar */}
-            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '4px', background: 'rgba(255,255,255,0.1)' }}>
-              <div style={{ height: '100%', background: 'var(--danger)', width: `${((30 - skipAdCountdown) / 30) * 100}%`, transition: 'width 1s linear' }} />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ─── Skip Ad Cancel Warning Modal ─── */}
-      {showSkipCancelWarning && (
-        <div className="modal-overlay" style={{ zIndex: 150 }}>
-          <div className="modal-content" style={{ maxWidth: '280px', padding: '16px' }}>
-            <div style={{ fontSize: '2rem', marginBottom: '8px', lineHeight: 1 }}>⚠️</div>
-            <h3 style={{ marginBottom: '8px', fontSize: '1.2rem' }}>Cancel Skip?</h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginBottom: '16px', lineHeight: 1.4 }}>
-              Are you sure? You will not skip the level if you cancel.
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <button className="btn btn-secondary btn-sm w-full" onClick={declineCancelSkipAd}>
-                Keep Watching
-              </button>
-              <button className="btn btn-danger btn-sm w-full" onClick={confirmCancelSkipAd}>
-                Yes, Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ─── Hint Ad Cancel Warning Modal ─── */}
-      {showHintCancelWarning && (
-        <div className="modal-overlay" style={{ zIndex: 150 }}>
-          <div className="modal-content" style={{ maxWidth: '280px', padding: '16px' }}>
-            <div style={{ fontSize: '2rem', marginBottom: '8px', lineHeight: 1 }}>⚠️</div>
-            <h3 style={{ marginBottom: '8px', fontSize: '1.2rem' }}>Cancel Ad?</h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginBottom: '16px', lineHeight: 1.4 }}>
-              Are you sure? You will not receive a hint if you cancel.
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <button className="btn btn-secondary btn-sm w-full" onClick={declineCancelHintAd}>
-                Keep Watching
-              </button>
-              <button className="btn btn-danger btn-sm w-full" onClick={confirmCancelHintAd}>
-                Yes, Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ─── Level Complete Modal ─── */}
       {completed && (
@@ -591,18 +359,7 @@ export default function PlayPage() {
               </p>
             </div>
 
-            {/* Level Complete Third Party Ad Banner */}
-            {!state.adsRemoved && (
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
-                <iframe 
-                  src="/ad-320.html" 
-                  width="320" 
-                  height="50" 
-                  frameBorder="0" 
-                  scrolling="no" 
-                />
-              </div>
-            )}
+
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {hasNextLevel && (

@@ -6,21 +6,11 @@ import { useRouter } from 'next/navigation';
 import { useGame } from '@/contexts/GameContext';
 import FloatingIcons from '@/components/FloatingIcons';
 import Header from '@/components/Header';
-import { levels } from '@/data/levels';
 
 export default function LandingPage() {
-  const { state, dispatch, getLevelsCleared, getTotalStars, setShowAuthModal } = useGame();
+  const { state, getLevelsCleared, getTotalStars } = useGame();
   const router = useRouter();
   const hasProgress = getLevelsCleared() > 0;
-
-  const handleProtectedAction = (e: React.MouseEvent, target: string) => {
-    e.preventDefault();
-    if (!state.user.isLoggedIn) {
-      setShowAuthModal(true);
-    } else {
-      router.push(target);
-    }
-  };
 
   return (
     <div className="page">
@@ -36,7 +26,7 @@ export default function LandingPage() {
         </div>
 
         {/* Progress Preview */}
-        {state.user.isLoggedIn && hasProgress && (
+        {hasProgress && (
           <div className="card" style={{ animation: 'slideUp 0.6s ease 0.2s both', maxWidth: '360px', width: '100%' }}>
             <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
               <div className="stat-card" style={{ padding: '12px' }}>
@@ -58,15 +48,15 @@ export default function LandingPage() {
         {/* CTA Buttons */}
         <div className="flex-col gap-md" style={{ animation: 'slideUp 0.6s ease 0.3s both', width: '100%', maxWidth: '320px' }}>
           {hasProgress ? (
-            <button onClick={(e) => handleProtectedAction(e, `/play/${state.currentLevel}`)} className="btn btn-primary btn-lg w-full">
+            <button onClick={() => router.push(`/play/${state.currentLevel}`)} className="btn btn-primary btn-lg w-full">
               ▶ Continue Game
             </button>
           ) : (
-            <button onClick={(e) => handleProtectedAction(e, '/play/1')} className="btn btn-primary btn-lg w-full">
+            <button onClick={() => router.push('/play/1')} className="btn btn-primary btn-lg w-full">
               🚀 Start Game
             </button>
           )}
-          <button onClick={(e) => handleProtectedAction(e, '/levels')} className="btn btn-secondary w-full">
+          <button onClick={() => router.push('/levels')} className="btn btn-secondary w-full">
             📊 All Levels
           </button>
         </div>
@@ -75,22 +65,7 @@ export default function LandingPage() {
         <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginTop: '20px' }}>
           Train your brain. Discover your mind. 🚀
         </p>
-
-        {/* Adsterra Homepage Banner (728x90) */}
-        {!state.adsRemoved && (
-          <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginTop: '10px', paddingBottom: '20px', overflow: 'hidden' }}>
-            <iframe 
-              src="/ad-728.html" 
-              width="728" 
-              height="90" 
-              frameBorder="0" 
-              scrolling="no" 
-              style={{ maxWidth: '100%' }}
-            />
-          </div>
-        )}
       </div>
-
     </div>
   );
 }
