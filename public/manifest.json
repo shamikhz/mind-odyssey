@@ -3,7 +3,7 @@
   "short_name": "Mind Odyssey",
   "description": "50-level personality enhancement puzzle game.",
   "start_url": "/",
-  "id": "/",
+  "id": "com.shamikh.mindodyssey",
   "display": "standalone",
   "orientation": "any",
   "categories": ["games", "puzzle"],
