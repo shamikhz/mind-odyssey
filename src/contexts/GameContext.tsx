@@ -54,7 +54,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     case 'CLAIM_DAILY_GIFT':
       return {
         ...state,
-        hintsRemaining: state.hintsRemaining + 5,
+        hintsRemaining: state.hintsRemaining + 2,
         lastDailyGiftDate: action.date,
       };
     case 'ADD_TIME':
@@ -142,7 +142,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       if (state.lastDailyGiftDate !== today) {
         dispatch({ type: 'CLAIM_DAILY_GIFT', date: today });
         if (typeof window !== 'undefined') {
-          window.alert("🎁 You received your daily gift of 5 free hints!");
+          window.alert("🎁 You received your daily gift of 2 free hints!");
         }
       }
     }
