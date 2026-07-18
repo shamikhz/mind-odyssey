@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.shamikh.mindodyssey",
+      "sha256_cert_fingerprints": [
+        "08:3F:E4:20:75:F4:1E:76:59:45:09:E5:0D:3F:C6:37:C8:91:68:1C:AD:0C:C7:BF:4E:B9:12:6E:38:1E:63:AD"
+      ]
+    }
+  }
+]
